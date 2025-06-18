@@ -6,29 +6,26 @@ const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
 // Components
-const LocationCard = ({ location, onSelectLocation, onDeleteLocation, isSelected }) => (
+const LocationCard = ({ location, onSelectLocation, isSelected }) => (
   <div className={`bg-white rounded-xl shadow-lg p-6 cursor-pointer transition-all duration-300 hover:shadow-xl border-2 ${
     isSelected ? 'border-green-500 bg-green-50' : 'border-gray-200'
   }`} onClick={() => onSelectLocation(location.id)}>
     <div className="flex justify-between items-start">
       <div>
         <h3 className="text-xl font-bold text-gray-800">{location.name}</h3>
-        <p className="text-gray-600 mt-1">
-          Lat: {location.latitude.toFixed(4)}, Lon: {location.longitude.toFixed(4)}
+        <div className="flex items-center text-gray-600 mt-1">
+          <span className="text-sm">{location.region} Region</span>
+          {location.population && (
+            <span className="ml-2 px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
+              {location.population}
+            </span>
+          )}
+        </div>
+        <p className="text-gray-500 text-sm mt-1">
+          {location.latitude.toFixed(4)}, {location.longitude.toFixed(4)}
         </p>
-        {location.zip_code && (
-          <p className="text-gray-500 text-sm">ZIP: {location.zip_code}</p>
-        )}
       </div>
-      <button
-        onClick={(e) => {
-          e.stopPropagation();
-          onDeleteLocation(location.id);
-        }}
-        className="text-red-500 hover:text-red-700 transition-colors"
-      >
-        🗑️
-      </button>
+      <div className="text-2xl">📍</div>
     </div>
   </div>
 );
@@ -43,141 +40,201 @@ const AirQualityCard = ({ data }) => {
     return 'bg-red-800';
   };
 
-  const getTextColor = (aqi) => {
-    if (aqi <= 50) return 'text-green-700';
-    if (aqi <= 100) return 'text-yellow-700';
-    if (aqi <= 150) return 'text-orange-700';
-    if (aqi <= 200) return 'text-red-700';
-    if (aqi <= 300) return 'text-purple-700';
-    return 'text-red-900';
+  const getRecommendation = (aqi) => {
+    if (aqi <= 50) return "Air quality is excellent. Great for outdoor activities!";
+    if (aqi <= 100) return "Air quality is acceptable. Normal activities recommended.";
+    if (aqi <= 150) return "Sensitive individuals should limit outdoor exertion.";
+    if (aqi <= 200) return "Everyone should avoid prolonged outdoor activities.";
+    return "Health warnings - everyone should avoid outdoor activities.";
   };
 
   return (
     <div className="bg-white rounded-xl shadow-lg p-6">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-xl font-bold text-gray-800">Air Quality - {data.location_name}</h3>
-        <div className={`px-3 py-1 rounded-full text-white text-sm font-medium ${getAQIColor(data.aqi)}`}>
-          AQI {data.aqi}
+        <div className={`px-4 py-2 rounded-full text-white text-lg font-bold ${getAQIColor(data.aqi)}`}>
+          {data.aqi}
         </div>
       </div>
       
-      <div className={`text-lg font-semibold mb-4 ${getTextColor(data.aqi)}`}>
-        {data.category}
-      </div>
-      
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-        {data.pm25 && (
-          <div className="text-center">
-            <div className="text-2xl font-bold text-gray-800">{data.pm25}</div>
-            <div className="text-sm text-gray-600">PM2.5</div>
-          </div>
-        )}
-        {data.pm10 && (
-          <div className="text-center">
-            <div className="text-2xl font-bold text-gray-800">{data.pm10}</div>
-            <div className="text-sm text-gray-600">PM10</div>
-          </div>
-        )}
-        {data.ozone && (
-          <div className="text-center">
-            <div className="text-2xl font-bold text-gray-800">{data.ozone}</div>
-            <div className="text-sm text-gray-600">Ozone</div>
-          </div>
-        )}
-        {data.no2 && (
-          <div className="text-center">
-            <div className="text-2xl font-bold text-gray-800">{data.no2}</div>
-            <div className="text-sm text-gray-600">NO2</div>
-          </div>
-        )}
-      </div>
-      
-      <div className="mt-4 text-sm text-gray-500">
-        Last updated: {new Date(data.timestamp).toLocaleString()}
-      </div>
-    </div>
-  );
-};
-
-const BioplasticCard = ({ sample }) => {
-  const getDegradationColor = (percentage) => {
-    if (percentage >= 80) return 'bg-green-500';
-    if (percentage >= 60) return 'bg-blue-500';
-    if (percentage >= 40) return 'bg-yellow-500';
-    if (percentage >= 20) return 'bg-orange-500';
-    return 'bg-red-500';
-  };
-
-  const getImpactColor = (score) => {
-    if (score >= 80) return 'text-red-600';
-    if (score >= 60) return 'text-orange-600';
-    if (score >= 40) return 'text-yellow-600';
-    if (score >= 20) return 'text-blue-600';
-    return 'text-green-600';
-  };
-
-  return (
-    <div className="bg-white rounded-xl shadow-lg p-6">
-      <div className="flex justify-between items-start mb-4">
-        <div>
-          <h3 className="text-xl font-bold text-gray-800">{sample.sample_type} Sample</h3>
-          <p className="text-gray-600">{sample.location_name}</p>
-        </div>
-        <div className="text-right">
-          <div className="text-2xl font-bold text-gray-800">{sample.degradation_percentage}%</div>
-          <div className="text-sm text-gray-600">Degraded</div>
+      <div className="mb-4">
+        <div className="text-lg font-semibold text-gray-700 mb-2">{data.category}</div>
+        <div className="text-sm text-gray-600 bg-gray-50 p-3 rounded-lg">
+          {getRecommendation(data.aqi)}
         </div>
       </div>
       
-      {/* Progress Bar */}
-      <div className="w-full bg-gray-200 rounded-full h-3 mb-4">
-        <div 
-          className={`h-3 rounded-full transition-all duration-500 ${getDegradationColor(sample.degradation_percentage)}`}
-          style={{ width: `${sample.degradation_percentage}%` }}
-        ></div>
-      </div>
-      
-      <div className="grid grid-cols-2 gap-4 mb-4">
-        <div>
-          <div className="text-sm text-gray-600">Current Weight</div>
-          <div className="text-lg font-semibold">{sample.current_weight}g</div>
-        </div>
-        <div>
-          <div className="text-sm text-gray-600">Days Active</div>
-          <div className="text-lg font-semibold">{sample.days_since_start}</div>
-        </div>
-        <div>
-          <div className="text-sm text-gray-600">Degradation Rate</div>
-          <div className="text-lg font-semibold">{sample.biodegradation_rate}%/day</div>
-        </div>
-        <div>
-          <div className="text-sm text-gray-600">Impact Score</div>
-          <div className={`text-lg font-semibold ${getImpactColor(sample.environmental_impact_score)}`}>
-            {sample.environmental_impact_score}
-          </div>
-        </div>
-      </div>
-      
-      <div className="grid grid-cols-3 gap-2 text-sm">
-        <div>
-          <span className="text-gray-600">Temp:</span> {sample.composting_temperature}°C
-        </div>
-        <div>
-          <span className="text-gray-600">Humidity:</span> {sample.composting_humidity}%
-        </div>
-        <div>
-          <span className="text-gray-600">pH:</span> {sample.composting_ph}
-        </div>
-      </div>
-      
-      {sample.microplastic_detected && (
-        <div className="mt-3 bg-red-100 border border-red-400 text-red-700 px-3 py-2 rounded text-sm">
-          ⚠️ Microplastics detected
+      {(data.pm25 || data.ozone) && (
+        <div className="grid grid-cols-2 gap-4 mb-4">
+          {data.pm25 && (
+            <div className="bg-blue-50 p-3 rounded-lg text-center">
+              <div className="text-2xl font-bold text-blue-600">{data.pm25}</div>
+              <div className="text-sm text-blue-800">PM2.5 (μg/m³)</div>
+            </div>
+          )}
+          {data.ozone && (
+            <div className="bg-purple-50 p-3 rounded-lg text-center">
+              <div className="text-2xl font-bold text-purple-600">{data.ozone}</div>
+              <div className="text-sm text-purple-800">Ozone (ppb)</div>
+            </div>
+          )}
         </div>
       )}
+      
+      <div className="text-xs text-gray-500 text-center">
+        Updated: {new Date(data.timestamp).toLocaleString()}
+      </div>
     </div>
   );
 };
+
+const BioplasticsInfoCard = ({ bioplasticInfo }) => {
+  const [selectedType, setSelectedType] = useState(0);
+  
+  if (!bioplasticInfo) return null;
+
+  return (
+    <div className="space-y-6">
+      {/* Overview */}
+      <div className="bg-gradient-to-r from-green-600 to-blue-600 text-white rounded-xl p-6">
+        <h2 className="text-2xl font-bold mb-4">🌱 Bioplastics in Uganda</h2>
+        <p className="text-green-100">
+          Exploring sustainable plastic alternatives using Uganda's abundant agricultural resources
+        </p>
+      </div>
+
+      {/* Types Selection */}
+      <div className="bg-white rounded-xl shadow-lg p-6">
+        <h3 className="text-xl font-bold text-gray-800 mb-4">Bioplastic Types</h3>
+        <div className="flex flex-wrap gap-2 mb-6">
+          {bioplasticInfo.types.map((type, index) => (
+            <button
+              key={index}
+              onClick={() => setSelectedType(index)}
+              className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                selectedType === index
+                  ? 'bg-green-600 text-white'
+                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              }`}
+            >
+              {type.name.split(' ')[0]}
+            </button>
+          ))}
+        </div>
+        
+        {/* Selected Type Details */}
+        <div className="border-l-4 border-green-500 pl-6">
+          <h4 className="text-lg font-semibold text-gray-800 mb-2">
+            {bioplasticInfo.types[selectedType].name}
+          </h4>
+          <p className="text-gray-600 mb-4">{bioplasticInfo.types[selectedType].description}</p>
+          
+          <div className="grid md:grid-cols-2 gap-4">
+            <div>
+              <h5 className="font-medium text-gray-700 mb-2">Applications</h5>
+              <ul className="text-sm text-gray-600 space-y-1">
+                {bioplasticInfo.types[selectedType].applications.map((app, i) => (
+                  <li key={i} className="flex items-center">
+                    <span className="w-2 h-2 bg-green-400 rounded-full mr-2"></span>
+                    {app}
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div>
+              <h5 className="font-medium text-gray-700 mb-2">Uganda Relevance</h5>
+              <p className="text-sm text-green-700 bg-green-50 p-3 rounded-lg">
+                {bioplasticInfo.types[selectedType].uganda_relevance}
+              </p>
+            </div>
+          </div>
+          
+          <div className="mt-4 flex flex-wrap gap-4 text-sm">
+            <div className="bg-blue-50 px-3 py-2 rounded-lg">
+              <span className="font-medium text-blue-800">Degradation: </span>
+              <span className="text-blue-600">{bioplasticInfo.types[selectedType].degradation_time}</span>
+            </div>
+            <div className="bg-green-50 px-3 py-2 rounded-lg">
+              <span className="font-medium text-green-800">Impact: </span>
+              <span className="text-green-600">{bioplasticInfo.types[selectedType].environmental_impact}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Opportunities for Uganda */}
+      <div className="bg-white rounded-xl shadow-lg p-6">
+        <h3 className="text-xl font-bold text-gray-800 mb-4">🇺🇬 Opportunities for Uganda</h3>
+        <div className="grid md:grid-cols-2 gap-6">
+          <div>
+            <h4 className="font-semibold text-green-700 mb-3">Benefits</h4>
+            <ul className="space-y-2">
+              {bioplasticInfo.benefits.slice(0, 3).map((benefit, i) => (
+                <li key={i} className="flex items-start text-sm text-gray-700">
+                  <span className="text-green-500 mr-2">✓</span>
+                  {benefit}
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div>
+            <h4 className="font-semibold text-blue-700 mb-3">Strategic Advantages</h4>
+            <ul className="space-y-2">
+              {bioplasticInfo.uganda_opportunities.slice(0, 3).map((opportunity, i) => (
+                <li key={i} className="flex items-start text-sm text-gray-700">
+                  <span className="text-blue-500 mr-2">→</span>
+                  {opportunity}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const BioplasticResearchCard = ({ research }) => (
+  <div className="bg-white rounded-xl shadow-lg p-6">
+    <div className="flex justify-between items-start mb-4">
+      <div>
+        <h3 className="text-lg font-bold text-gray-800">{research.bioplastic_type} Research</h3>
+        <p className="text-sm text-gray-600">{research.location_name} • {research.research_focus.replace('_', ' ').toUpperCase()}</p>
+      </div>
+      <div className="px-3 py-1 bg-blue-100 text-blue-800 text-xs rounded-full font-medium">
+        {research.research_focus.replace('_', ' ')}
+      </div>
+    </div>
+    
+    <div className="space-y-3">
+      <h4 className="font-semibold text-gray-700">Key Findings</h4>
+      {Object.entries(research.findings).slice(0, 3).map(([key, value], i) => (
+        <div key={i} className="bg-gray-50 p-3 rounded-lg">
+          <div className="text-sm font-medium text-gray-700 capitalize mb-1">
+            {key.replace('_', ' ')}
+          </div>
+          <div className="text-sm text-gray-600">{value}</div>
+        </div>
+      ))}
+    </div>
+    
+    <div className="mt-4">
+      <h4 className="font-semibold text-gray-700 mb-2">Recommendations</h4>
+      <ul className="space-y-1">
+        {research.recommendations.slice(0, 2).map((rec, i) => (
+          <li key={i} className="text-sm text-gray-600 flex items-start">
+            <span className="text-green-500 mr-2 flex-shrink-0">•</span>
+            {rec}
+          </li>
+        ))}
+      </ul>
+    </div>
+    
+    <div className="mt-4 text-xs text-gray-500">
+      Generated: {new Date(research.created_at).toLocaleDateString()}
+    </div>
+  </div>
+);
 
 const AlertCard = ({ alert, onAcknowledge }) => {
   const getSeverityColor = (severity) => {
@@ -223,9 +280,9 @@ const Modal = ({ isOpen, onClose, children }) => {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-xl p-6 max-w-md w-full mx-4">
+      <div className="bg-white rounded-xl p-6 max-w-lg w-full mx-4 max-h-90vh overflow-y-auto">
         <div className="flex justify-end mb-4">
-          <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
+          <button onClick={onClose} className="text-gray-500 hover:text-gray-700 text-xl">
             ✕
           </button>
         </div>
@@ -240,24 +297,20 @@ const App = () => {
   const [locations, setLocations] = useState([]);
   const [selectedLocationId, setSelectedLocationId] = useState(null);
   const [airQualityData, setAirQualityData] = useState(null);
-  const [bioplasticSamples, setBioplasticSamples] = useState([]);
+  const [bioplasticsInfo, setBioplasticsInfo] = useState(null);
+  const [bioplasticResearch, setBioplasticResearch] = useState([]);
   const [alerts, setAlerts] = useState([]);
   const [dashboardSummary, setDashboardSummary] = useState(null);
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('dashboard');
   
   // Modal states
-  const [showLocationModal, setShowLocationModal] = useState(false);
-  const [showBioplasticModal, setShowBioplasticModal] = useState(false);
+  const [showResearchModal, setShowResearchModal] = useState(false);
   
   // Form states
-  const [locationForm, setLocationForm] = useState({
-    name: '', latitude: '', longitude: '', zip_code: ''
-  });
-  const [bioplasticForm, setBioplasticForm] = useState({
-    location_id: '', location_name: '', sample_type: 'PLA', 
-    initial_weight: '', composting_temperature: '25', 
-    composting_humidity: '60', composting_ph: '7'
+  const [researchForm, setResearchForm] = useState({
+    location_id: '', location_name: '', research_focus: 'production_feasibility', 
+    bioplastic_type: 'PLA'
   });
 
   // Fetch functions
@@ -265,6 +318,13 @@ const App = () => {
     try {
       const response = await axios.get(`${API}/locations`);
       setLocations(response.data);
+      
+      // If no locations, initialize Uganda cities
+      if (response.data.length === 0) {
+        await axios.post(`${API}/initialize-uganda-locations`);
+        const ugandaResponse = await axios.get(`${API}/locations`);
+        setLocations(ugandaResponse.data);
+      }
     } catch (error) {
       console.error('Error fetching locations:', error);
     }
@@ -283,12 +343,21 @@ const App = () => {
     }
   }, []);
 
-  const fetchBioplasticSamples = useCallback(async () => {
+  const fetchBioplasticsInfo = useCallback(async () => {
     try {
-      const response = await axios.get(`${API}/bioplastics`);
-      setBioplasticSamples(response.data);
+      const response = await axios.get(`${API}/bioplastics/info`);
+      setBioplasticsInfo(response.data);
     } catch (error) {
-      console.error('Error fetching bioplastic samples:', error);
+      console.error('Error fetching bioplastics info:', error);
+    }
+  }, []);
+
+  const fetchBioplasticResearch = useCallback(async () => {
+    try {
+      const response = await axios.get(`${API}/bioplastics/research`);
+      setBioplasticResearch(response.data);
+    } catch (error) {
+      console.error('Error fetching bioplastic research:', error);
     }
   }, []);
 
@@ -311,62 +380,23 @@ const App = () => {
   }, []);
 
   // Action functions
-  const handleCreateLocation = async (e) => {
+  const handleCreateResearch = async (e) => {
     e.preventDefault();
-    try {
-      await axios.post(`${API}/locations`, {
-        name: locationForm.name,
-        latitude: parseFloat(locationForm.latitude),
-        longitude: parseFloat(locationForm.longitude),
-        zip_code: locationForm.zip_code || null
-      });
-      setLocationForm({ name: '', latitude: '', longitude: '', zip_code: '' });
-      setShowLocationModal(false);
-      fetchLocations();
-    } catch (error) {
-      console.error('Error creating location:', error);
-    }
-  };
-
-  const handleDeleteLocation = async (locationId) => {
-    try {
-      await axios.delete(`${API}/locations/${locationId}`);
-      fetchLocations();
-      if (selectedLocationId === locationId) {
-        setSelectedLocationId(null);
-        setAirQualityData(null);
-      }
-    } catch (error) {
-      console.error('Error deleting location:', error);
-    }
-  };
-
-  const handleCreateBioplasticSample = async (e) => {
-    e.preventDefault();
-    if (!bioplasticForm.location_id) {
+    if (!researchForm.location_id) {
       alert('Please select a location first');
       return;
     }
     
     try {
-      await axios.post(`${API}/bioplastics`, {
-        location_id: bioplasticForm.location_id,
-        location_name: bioplasticForm.location_name,
-        sample_type: bioplasticForm.sample_type,
-        initial_weight: parseFloat(bioplasticForm.initial_weight),
-        composting_temperature: parseFloat(bioplasticForm.composting_temperature),
-        composting_humidity: parseFloat(bioplasticForm.composting_humidity),
-        composting_ph: parseFloat(bioplasticForm.composting_ph)
+      await axios.post(`${API}/bioplastics/research`, researchForm);
+      setResearchForm({
+        location_id: '', location_name: '', research_focus: 'production_feasibility',
+        bioplastic_type: 'PLA'
       });
-      setBioplasticForm({
-        location_id: '', location_name: '', sample_type: 'PLA',
-        initial_weight: '', composting_temperature: '25', 
-        composting_humidity: '60', composting_ph: '7'
-      });
-      setShowBioplasticModal(false);
-      fetchBioplasticSamples();
+      setShowResearchModal(false);
+      fetchBioplasticResearch();
     } catch (error) {
-      console.error('Error creating bioplastic sample:', error);
+      console.error('Error creating research:', error);
     }
   };
 
@@ -383,7 +413,7 @@ const App = () => {
     setSelectedLocationId(locationId);
     const location = locations.find(l => l.id === locationId);
     if (location) {
-      setBioplasticForm(prev => ({
+      setResearchForm(prev => ({
         ...prev,
         location_id: locationId,
         location_name: location.name
@@ -391,13 +421,14 @@ const App = () => {
     }
   };
 
-  // Auto-refresh data
+  // Initial data fetch
   useEffect(() => {
     fetchLocations();
-    fetchBioplasticSamples();
+    fetchBioplasticsInfo();
+    fetchBioplasticResearch();
     fetchAlerts();
     fetchDashboardSummary();
-  }, [fetchLocations, fetchBioplasticSamples, fetchAlerts, fetchDashboardSummary]);
+  }, [fetchLocations, fetchBioplasticsInfo, fetchBioplasticResearch, fetchAlerts, fetchDashboardSummary]);
 
   useEffect(() => {
     if (selectedLocationId) {
@@ -411,38 +442,29 @@ const App = () => {
       if (selectedLocationId) {
         fetchAirQuality(selectedLocationId);
       }
-      fetchBioplasticSamples();
       fetchAlerts();
       fetchDashboardSummary();
     }, 30000);
 
     return () => clearInterval(interval);
-  }, [selectedLocationId, fetchAirQuality, fetchBioplasticSamples, fetchAlerts, fetchDashboardSummary]);
+  }, [selectedLocationId, fetchAirQuality, fetchAlerts, fetchDashboardSummary]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-green-50 to-blue-100">
+    <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-green-100">
       {/* Header */}
       <header className="bg-white shadow-lg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
             <div className="flex items-center">
-              <div className="text-3xl font-bold text-green-600">🌍</div>
-              <h1 className="ml-3 text-2xl font-bold text-gray-900">EcoMonitor</h1>
-              <span className="ml-2 text-sm text-gray-500">Environmental & Bioplastics Monitoring</span>
+              <div className="text-3xl font-bold">🇺🇬</div>
+              <div className="ml-3">
+                <h1 className="text-2xl font-bold text-gray-900">Uganda EcoMonitor</h1>
+                <span className="text-sm text-gray-500">Environmental Research & Bioplastics Development</span>
+              </div>
             </div>
-            <div className="flex space-x-4">
-              <button
-                onClick={() => setShowLocationModal(true)}
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                + Add Location
-              </button>
-              <button
-                onClick={() => setShowBioplasticModal(true)}
-                className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
-              >
-                + Add Bioplastic Sample
-              </button>
+            <div className="text-right">
+              <div className="text-sm text-gray-600">Monitoring {locations.length} locations</div>
+              <div className="text-xs text-green-600">Focus: Sustainable Bioplastics</div>
             </div>
           </div>
         </div>
@@ -452,17 +474,23 @@ const App = () => {
       <nav className="bg-white border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex space-x-8">
-            {['dashboard', 'locations', 'bioplastics', 'alerts'].map((tab) => (
+            {[
+              { key: 'dashboard', label: 'Dashboard', icon: '📊' },
+              { key: 'locations', label: 'Locations', icon: '📍' },
+              { key: 'bioplastics', label: 'Bioplastics Research', icon: '🌱' },
+              { key: 'alerts', label: 'Alerts', icon: '🔔' }
+            ].map((tab) => (
               <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={`py-4 px-1 border-b-2 font-medium text-sm capitalize ${
-                  activeTab === tab
+                key={tab.key}
+                onClick={() => setActiveTab(tab.key)}
+                className={`py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 ${
+                  activeTab === tab.key
                     ? 'border-green-500 text-green-600'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                 }`}
               >
-                {tab}
+                <span>{tab.icon}</span>
+                {tab.label}
               </button>
             ))}
           </div>
@@ -475,26 +503,18 @@ const App = () => {
           <div className="space-y-8">
             {/* Dashboard Summary */}
             {dashboardSummary && (
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="bg-white rounded-xl shadow-lg p-6 text-center">
                   <div className="text-3xl font-bold text-blue-600">{dashboardSummary.locations_count}</div>
-                  <div className="text-gray-600">Monitoring Locations</div>
+                  <div className="text-gray-600">Ugandan Cities</div>
                 </div>
                 <div className="bg-white rounded-xl shadow-lg p-6 text-center">
-                  <div className="text-3xl font-bold text-green-600">{dashboardSummary.bioplastics_count}</div>
-                  <div className="text-gray-600">Bioplastic Samples</div>
+                  <div className="text-3xl font-bold text-green-600">{dashboardSummary.research_count}</div>
+                  <div className="text-gray-600">Research Studies</div>
                 </div>
                 <div className="bg-white rounded-xl shadow-lg p-6 text-center">
                   <div className="text-3xl font-bold text-red-600">{dashboardSummary.unacknowledged_alerts}</div>
                   <div className="text-gray-600">Active Alerts</div>
-                </div>
-                <div className="bg-white rounded-xl shadow-lg p-6 text-center">
-                  <div className="text-3xl font-bold text-purple-600">
-                    {dashboardSummary.top_degraded_bioplastics.length > 0 
-                      ? Math.round(dashboardSummary.top_degraded_bioplastics[0]?.degradation_percentage || 0)
-                      : 0}%
-                  </div>
-                  <div className="text-gray-600">Top Degradation</div>
                 </div>
               </div>
             )}
@@ -507,13 +527,13 @@ const App = () => {
               </div>
             )}
 
-            {/* Top Bioplastic Samples */}
-            {dashboardSummary?.top_degraded_bioplastics.length > 0 && (
+            {/* Recent Research */}
+            {dashboardSummary?.recent_research && dashboardSummary.recent_research.length > 0 && (
               <div>
-                <h2 className="text-2xl font-bold text-gray-800 mb-6">🌱 Top Bioplastic Degradation</h2>
+                <h2 className="text-2xl font-bold text-gray-800 mb-6">🌱 Recent Bioplastics Research</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {dashboardSummary.top_degraded_bioplastics.slice(0, 3).map((sample) => (
-                    <BioplasticCard key={sample.id} sample={sample} />
+                  {dashboardSummary.recent_research.map((research) => (
+                    <BioplasticResearchCard key={research.id} research={research} />
                   ))}
                 </div>
               </div>
@@ -523,33 +543,23 @@ const App = () => {
 
         {activeTab === 'locations' && (
           <div className="space-y-8">
-            <h2 className="text-2xl font-bold text-gray-800">Monitoring Locations</h2>
+            <div className="flex justify-between items-center">
+              <h2 className="text-2xl font-bold text-gray-800">🇺🇬 Uganda Monitoring Locations</h2>
+              <div className="text-sm text-gray-600">
+                {locations.length} cities across 4 regions
+              </div>
+            </div>
             
-            {locations.length === 0 ? (
-              <div className="text-center py-12">
-                <div className="text-6xl mb-4">📍</div>
-                <h3 className="text-xl text-gray-600 mb-2">No locations added yet</h3>
-                <p className="text-gray-500 mb-4">Add your first monitoring location to get started</p>
-                <button
-                  onClick={() => setShowLocationModal(true)}
-                  className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                  Add First Location
-                </button>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {locations.map((location) => (
-                  <LocationCard
-                    key={location.id}
-                    location={location}
-                    onSelectLocation={handleSelectLocation}
-                    onDeleteLocation={handleDeleteLocation}
-                    isSelected={selectedLocationId === location.id}
-                  />
-                ))}
-              </div>
-            )}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {locations.map((location) => (
+                <LocationCard
+                  key={location.id}
+                  location={location}
+                  onSelectLocation={handleSelectLocation}
+                  isSelected={selectedLocationId === location.id}
+                />
+              ))}
+            </div>
 
             {selectedLocationId && airQualityData && (
               <div className="mt-8">
@@ -563,29 +573,28 @@ const App = () => {
         {activeTab === 'bioplastics' && (
           <div className="space-y-8">
             <div className="flex justify-between items-center">
-              <h2 className="text-2xl font-bold text-gray-800">🌱 Bioplastic Monitoring</h2>
-              <div className="text-sm text-gray-600">
-                Tracking biodegradation progress and environmental impact
-              </div>
+              <h2 className="text-2xl font-bold text-gray-800">🌱 Bioplastics Research Center</h2>
+              <button
+                onClick={() => setShowResearchModal(true)}
+                className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2"
+              >
+                <span>📋</span>
+                Generate Research Report
+              </button>
             </div>
             
-            {bioplasticSamples.length === 0 ? (
-              <div className="text-center py-12">
-                <div className="text-6xl mb-4">🧪</div>
-                <h3 className="text-xl text-gray-600 mb-2">No bioplastic samples yet</h3>
-                <p className="text-gray-500 mb-4">Start monitoring bioplastic degradation</p>
-                <button
-                  onClick={() => setShowBioplasticModal(true)}
-                  className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors"
-                >
-                  Add First Sample
-                </button>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {bioplasticSamples.map((sample) => (
-                  <BioplasticCard key={sample.id} sample={sample} />
-                ))}
+            {/* Bioplastics Information */}
+            <BioplasticsInfoCard bioplasticInfo={bioplasticsInfo} />
+            
+            {/* Research Results */}
+            {bioplasticResearch.length > 0 && (
+              <div>
+                <h3 className="text-xl font-bold text-gray-800 mb-6">Research Studies</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {bioplasticResearch.map((research) => (
+                    <BioplasticResearchCard key={research.id} research={research} />
+                  ))}
+                </div>
               </div>
             )}
           </div>
@@ -597,9 +606,9 @@ const App = () => {
             
             {alerts.length === 0 ? (
               <div className="text-center py-12">
-                <div className="text-6xl mb-4">🔔</div>
-                <h3 className="text-xl text-gray-600 mb-2">No alerts</h3>
-                <p className="text-gray-500">All environmental conditions are within normal ranges</p>
+                <div className="text-6xl mb-4">✅</div>
+                <h3 className="text-xl text-gray-600 mb-2">No active alerts</h3>
+                <p className="text-gray-500">All environmental conditions are within acceptable ranges</p>
               </div>
             ) : (
               <div className="max-w-3xl">
@@ -616,86 +625,19 @@ const App = () => {
         )}
       </main>
 
-      {/* Location Modal */}
-      <Modal isOpen={showLocationModal} onClose={() => setShowLocationModal(false)}>
-        <h3 className="text-xl font-bold mb-4">Add New Location</h3>
-        <form onSubmit={handleCreateLocation}>
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Location Name</label>
-              <input
-                type="text"
-                value={locationForm.name}
-                onChange={(e) => setLocationForm({...locationForm, name: e.target.value})}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Latitude</label>
-                <input
-                  type="number"
-                  step="any"
-                  value={locationForm.latitude}
-                  onChange={(e) => setLocationForm({...locationForm, latitude: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Longitude</label>
-                <input
-                  type="number"
-                  step="any"
-                  value={locationForm.longitude}
-                  onChange={(e) => setLocationForm({...locationForm, longitude: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  required
-                />
-              </div>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">ZIP Code (Optional)</label>
-              <input
-                type="text"
-                value={locationForm.zip_code}
-                onChange={(e) => setLocationForm({...locationForm, zip_code: e.target.value})}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-          </div>
-          <div className="flex justify-end space-x-3 mt-6">
-            <button
-              type="button"
-              onClick={() => setShowLocationModal(false)}
-              className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-            >
-              Add Location
-            </button>
-          </div>
-        </form>
-      </Modal>
-
-      {/* Bioplastic Sample Modal */}
-      <Modal isOpen={showBioplasticModal} onClose={() => setShowBioplasticModal(false)}>
-        <h3 className="text-xl font-bold mb-4">Add Bioplastic Sample</h3>
-        <form onSubmit={handleCreateBioplasticSample}>
+      {/* Research Generation Modal */}
+      <Modal isOpen={showResearchModal} onClose={() => setShowResearchModal(false)}>
+        <h3 className="text-xl font-bold mb-4">Generate Bioplastics Research Report</h3>
+        <form onSubmit={handleCreateResearch}>
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Location</label>
               <select
-                value={bioplasticForm.location_id}
+                value={researchForm.location_id}
                 onChange={(e) => {
                   const location = locations.find(l => l.id === e.target.value);
-                  setBioplasticForm({
-                    ...bioplasticForm, 
+                  setResearchForm({
+                    ...researchForm, 
                     location_id: e.target.value,
                     location_name: location ? location.name : ''
                   });
@@ -705,74 +647,41 @@ const App = () => {
               >
                 <option value="">Select a location</option>
                 {locations.map((location) => (
-                  <option key={location.id} value={location.id}>{location.name}</option>
+                  <option key={location.id} value={location.id}>
+                    {location.name} ({location.region} Region)
+                  </option>
                 ))}
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Sample Type</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Research Focus</label>
               <select
-                value={bioplasticForm.sample_type}
-                onChange={(e) => setBioplasticForm({...bioplasticForm, sample_type: e.target.value})}
+                value={researchForm.research_focus}
+                onChange={(e) => setResearchForm({...researchForm, research_focus: e.target.value})}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+              >
+                <option value="production_feasibility">Production Feasibility</option>
+                <option value="environmental_impact">Environmental Impact</option>
+                <option value="market_analysis">Market Analysis</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Bioplastic Type</label>
+              <select
+                value={researchForm.bioplastic_type}
+                onChange={(e) => setResearchForm({...researchForm, bioplastic_type: e.target.value})}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
               >
                 <option value="PLA">PLA (Polylactic Acid)</option>
                 <option value="PHA">PHA (Polyhydroxyalkanoates)</option>
-                <option value="PBS">PBS (Polybutylene Succinate)</option>
-                <option value="Starch-based">Starch-based</option>
+                <option value="Starch-based">Starch-based Plastics</option>
               </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Initial Weight (grams)</label>
-              <input
-                type="number"
-                step="0.1"
-                value={bioplasticForm.initial_weight}
-                onChange={(e) => setBioplasticForm({...bioplasticForm, initial_weight: e.target.value})}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                required
-              />
-            </div>
-            <div className="grid grid-cols-3 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Temperature (°C)</label>
-                <input
-                  type="number"
-                  step="0.1"
-                  value={bioplasticForm.composting_temperature}
-                  onChange={(e) => setBioplasticForm({...bioplasticForm, composting_temperature: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Humidity (%)</label>
-                <input
-                  type="number"
-                  step="0.1"
-                  value={bioplasticForm.composting_humidity}
-                  onChange={(e) => setBioplasticForm({...bioplasticForm, composting_humidity: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">pH</label>
-                <input
-                  type="number"
-                  step="0.1"
-                  value={bioplasticForm.composting_ph}
-                  onChange={(e) => setBioplasticForm({...bioplasticForm, composting_ph: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                  required
-                />
-              </div>
             </div>
           </div>
           <div className="flex justify-end space-x-3 mt-6">
             <button
               type="button"
-              onClick={() => setShowBioplasticModal(false)}
+              onClick={() => setShowResearchModal(false)}
               className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
             >
               Cancel
@@ -781,7 +690,7 @@ const App = () => {
               type="submit"
               className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
             >
-              Add Sample
+              Generate Report
             </button>
           </div>
         </form>

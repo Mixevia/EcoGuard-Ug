@@ -32,20 +32,79 @@ api_router = APIRouter(prefix="/api")
 AIRNOW_API_KEY = "82556E93-5428-4414-B4FC-5FDBF80FF566"
 AIRNOW_BASE_URL = "https://www.airnowapi.org/aq"
 
+# Uganda Major Cities Data
+UGANDA_CITIES = [
+    {"name": "Kampala", "latitude": 0.3476, "longitude": 32.5825, "population": "1.7M", "region": "Central"},
+    {"name": "Gulu", "latitude": 2.7856, "longitude": 32.2998, "population": "152K", "region": "Northern"},
+    {"name": "Lira", "latitude": 2.2499, "longitude": 32.8998, "population": "119K", "region": "Northern"},
+    {"name": "Mbarara", "latitude": -0.6069, "longitude": 30.6595, "population": "97K", "region": "Western"},
+    {"name": "Jinja", "latitude": 0.4244, "longitude": 33.2044, "population": "93K", "region": "Eastern"},
+    {"name": "Mbale", "latitude": 1.0827, "longitude": 34.1709, "population": "92K", "region": "Eastern"},
+    {"name": "Mukono", "latitude": 0.3533, "longitude": 32.7554, "population": "67K", "region": "Central"},
+    {"name": "Kasese", "latitude": 0.1833, "longitude": 30.0833, "population": "58K", "region": "Western"},
+    {"name": "Masaka", "latitude": -0.3337, "longitude": 31.7335, "population": "54K", "region": "Central"},
+    {"name": "Entebbe", "latitude": 0.0563, "longitude": 32.4625, "population": "45K", "region": "Central"}
+]
+
+# Bioplastics Educational Data
+BIOPLASTICS_INFO = {
+    "types": [
+        {
+            "name": "PLA (Polylactic Acid)",
+            "description": "Made from renewable resources like corn starch or sugar cane",
+            "degradation_time": "3-6 months in industrial composting",
+            "applications": ["Food packaging", "3D printing", "Disposable cutlery"],
+            "environmental_impact": "85% lower carbon footprint than conventional plastics",
+            "uganda_relevance": "Can be produced from Uganda's abundant maize and sugar cane"
+        },
+        {
+            "name": "PHA (Polyhydroxyalkanoates)",
+            "description": "Produced by microorganisms from organic feedstock",
+            "degradation_time": "6 months in marine environment",
+            "applications": ["Food packaging", "Agricultural films", "Medical devices"],
+            "environmental_impact": "100% biodegradable in various environments",
+            "uganda_relevance": "Production possible using agricultural waste from coffee and banana farming"
+        },
+        {
+            "name": "Starch-based Plastics",
+            "description": "Made from potato, corn, or cassava starch",
+            "degradation_time": "2-5 months in composting conditions",
+            "applications": ["Shopping bags", "Food containers", "Agricultural mulch"],
+            "environmental_impact": "Renewable and compostable",
+            "uganda_relevance": "High potential using Uganda's cassava and sweet potato production"
+        }
+    ],
+    "benefits": [
+        "Reduced dependence on fossil fuels",
+        "Lower greenhouse gas emissions",
+        "Biodegradable and compostable",
+        "Support for agricultural economy",
+        "Reduced plastic pollution in waterways"
+    ],
+    "challenges": [
+        "Higher production costs",
+        "Limited industrial composting facilities",
+        "Need for proper waste management systems",
+        "Consumer education requirements"
+    ],
+    "uganda_opportunities": [
+        "Rich agricultural resources for feedstock",
+        "Growing environmental awareness",
+        "Government support for sustainable initiatives",
+        "Potential for job creation in rural areas",
+        "Export opportunities to regional markets"
+    ]
+}
+
 # Data Models
 class Location(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     name: str
     latitude: float
     longitude: float
-    zip_code: Optional[str] = None
+    population: Optional[str] = None
+    region: Optional[str] = None
     created_at: datetime = Field(default_factory=datetime.utcnow)
-
-class LocationCreate(BaseModel):
-    name: str
-    latitude: float
-    longitude: float
-    zip_code: Optional[str] = None
 
 class AirQualityData(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
@@ -61,39 +120,27 @@ class AirQualityData(BaseModel):
     category: str
     status_level: str  # "good", "moderate", "unhealthy_sensitive", "unhealthy", "very_unhealthy", "hazardous"
 
-class BioplasticSample(BaseModel):
+class BioplasticResearch(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     location_id: str
     location_name: str
-    sample_type: str  # "PLA", "PHA", "PBS", "Starch-based"
-    initial_weight: float  # grams
-    current_weight: float  # grams
-    degradation_percentage: float
-    composting_temperature: float  # celsius
-    composting_humidity: float  # percentage
-    composting_ph: float
-    days_since_start: int
-    expected_total_days: int
-    microplastic_detected: bool
-    biodegradation_rate: float  # percentage per day
-    environmental_impact_score: float  # 0-100 scale
+    research_focus: str  # "production_feasibility", "environmental_impact", "market_analysis"
+    bioplastic_type: str
+    findings: dict
+    recommendations: List[str]
     created_at: datetime = Field(default_factory=datetime.utcnow)
-    last_updated: datetime = Field(default_factory=datetime.utcnow)
 
-class BioplasticSampleCreate(BaseModel):
+class BioplasticResearchCreate(BaseModel):
     location_id: str
     location_name: str
-    sample_type: str
-    initial_weight: float
-    composting_temperature: float
-    composting_humidity: float
-    composting_ph: float
+    research_focus: str
+    bioplastic_type: str
 
 class EnvironmentalAlert(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     location_id: str
     location_name: str
-    alert_type: str  # "air_quality", "bioplastic_degradation"
+    alert_type: str  # "air_quality", "bioplastic_opportunity"
     severity: str  # "low", "medium", "high", "critical"
     message: str
     value: float
@@ -141,68 +188,71 @@ async def fetch_airnow_data(lat: float, lon: float) -> dict:
         return generate_simulated_air_data()
 
 def generate_simulated_air_data() -> dict:
-    """Generate realistic simulated air quality data"""
-    base_aqi = random.randint(20, 180)
+    """Generate realistic simulated air quality data for Uganda"""
+    # Uganda typically has moderate air quality with seasonal variations
+    base_aqi = random.randint(45, 95)  # Generally good to moderate
     return [{
         "AQI": base_aqi,
         "Category": {"Name": get_aqi_category(base_aqi)[0]},
         "ParameterName": "PM2.5",
-        "Value": round(random.uniform(5, 100), 2)
+        "Value": round(random.uniform(10, 45), 2)
     }, {
-        "AQI": base_aqi + random.randint(-20, 20),
+        "AQI": base_aqi + random.randint(-15, 15),
         "Category": {"Name": get_aqi_category(base_aqi)[0]},
         "ParameterName": "OZONE",
-        "Value": round(random.uniform(20, 150), 2)
+        "Value": round(random.uniform(30, 80), 2)
     }]
 
-def generate_bioplastic_data(sample: BioplasticSample) -> BioplasticSample:
-    """Update bioplastic sample with realistic degradation simulation"""
-    days_passed = (datetime.utcnow() - sample.created_at).days
+def generate_bioplastic_research_data(research: BioplasticResearchCreate) -> dict:
+    """Generate informative bioplastic research findings"""
+    bioplastic_info = next((info for info in BIOPLASTICS_INFO["types"] if info["name"].startswith(research.bioplastic_type)), BIOPLASTICS_INFO["types"][0])
     
-    # Different degradation rates for different materials
-    material_rates = {
-        "PLA": 0.8,  # slower degradation
-        "PHA": 1.2,  # faster degradation
-        "PBS": 1.0,  # medium degradation
-        "Starch-based": 1.5  # fastest degradation
-    }
-    
-    base_rate = material_rates.get(sample.sample_type, 1.0)
-    
-    # Environmental factors affecting degradation
-    temp_factor = max(0.5, min(2.0, sample.composting_temperature / 25))
-    humidity_factor = max(0.5, min(1.5, sample.composting_humidity / 60))
-    ph_factor = max(0.3, min(1.2, abs(7 - sample.composting_ph) / 2))
-    
-    daily_degradation = base_rate * temp_factor * humidity_factor * ph_factor
-    
-    # Calculate current state
-    total_degradation = min(95, days_passed * daily_degradation)
-    current_weight = max(sample.initial_weight * 0.05, sample.initial_weight * (1 - total_degradation / 100))
-    
-    sample.current_weight = round(current_weight, 2)
-    sample.degradation_percentage = round(total_degradation, 1)
-    sample.days_since_start = days_passed
-    sample.biodegradation_rate = round(daily_degradation, 2)
-    sample.microplastic_detected = total_degradation < 70 and days_passed > 30
-    sample.environmental_impact_score = round(max(10, 100 - total_degradation), 1)
-    sample.last_updated = datetime.utcnow()
-    
-    return sample
+    if research.research_focus == "production_feasibility":
+        return {
+            "feedstock_availability": "High - Uganda produces over 5M tons of relevant crops annually",
+            "infrastructure_needs": "Medium - Requires investment in processing facilities",
+            "cost_analysis": f"Production cost estimated at 15-20% higher than conventional plastics",
+            "technical_readiness": "Technology available, pilot projects recommended",
+            "local_expertise": "Growing, partnerships with universities recommended"
+        }
+    elif research.research_focus == "environmental_impact":
+        return {
+            "carbon_footprint_reduction": "60-85% lower than conventional plastics",
+            "waste_reduction_potential": "Significant - addresses 600,000 tons of plastic waste annually",
+            "biodegradation_timeline": bioplastic_info["degradation_time"],
+            "water_impact": "Positive - reduces plastic pollution in Lake Victoria",
+            "soil_health": "Neutral to positive when properly composted"
+        }
+    else:  # market_analysis
+        return {
+            "market_size": "Regional market estimated at $50-75M by 2030",
+            "demand_drivers": "Government policies, environmental awareness, export potential",
+            "key_applications": ", ".join(bioplastic_info["applications"]),
+            "competition": "Limited local production, import substitution opportunity",
+            "growth_projections": "15-25% annual growth potential"
+        }
 
 # API Routes
 @api_router.get("/")
 async def root():
-    return {"message": "Environmental Monitoring API", "status": "active"}
+    return {"message": "Uganda Environmental Monitoring API", "status": "active", "focus": "bioplastics_research"}
+
+# Uganda Cities Initialization
+@api_router.post("/initialize-uganda-locations")
+async def initialize_uganda_locations():
+    """Initialize database with major Ugandan cities"""
+    created_count = 0
+    for city_data in UGANDA_CITIES:
+        # Check if city already exists
+        existing = await db.locations.find_one({"name": city_data["name"]})
+        if not existing:
+            location = Location(**city_data)
+            await db.locations.insert_one(location.dict())
+            created_count += 1
+    
+    return {"message": f"Initialized {created_count} Ugandan cities", "total_cities": len(UGANDA_CITIES)}
 
 # Location Management
-@api_router.post("/locations", response_model=Location)
-async def create_location(location: LocationCreate):
-    location_dict = location.dict()
-    location_obj = Location(**location_dict)
-    await db.locations.insert_one(location_obj.dict())
-    return location_obj
-
 @api_router.get("/locations", response_model=List[Location])
 async def get_locations():
     locations = await db.locations.find().to_list(100)
@@ -222,11 +272,11 @@ async def get_air_quality(location_id: str):
     if not location:
         raise HTTPException(status_code=404, detail="Location not found")
     
-    # Fetch real AirNow data
+    # Fetch air quality data
     air_data = await fetch_airnow_data(location["latitude"], location["longitude"])
     
     if air_data:
-        # Process AirNow response
+        # Process response
         aqi_data = {}
         for item in air_data:
             if item.get("AQI"):
@@ -246,7 +296,7 @@ async def get_air_quality(location_id: str):
                 aqi_data["so2"] = item.get("Value")
         
         if not aqi_data.get("aqi"):
-            aqi_data["aqi"] = random.randint(20, 120)
+            aqi_data["aqi"] = random.randint(35, 85)  # Uganda typical range
             aqi_data["category"], aqi_data["status_level"] = get_aqi_category(aqi_data["aqi"])
         
         air_quality = AirQualityData(
@@ -282,59 +332,58 @@ async def get_air_quality(location_id: str):
     
     raise HTTPException(status_code=500, detail="Unable to fetch air quality data")
 
-# Bioplastics Management
-@api_router.post("/bioplastics", response_model=BioplasticSample)
-async def create_bioplastic_sample(sample: BioplasticSampleCreate):
-    sample_dict = sample.dict()
-    bioplastic_sample = BioplasticSample(
-        **sample_dict,
-        current_weight=sample.initial_weight,
-        degradation_percentage=0.0,
-        days_since_start=0,
-        expected_total_days=random.randint(90, 365),
-        microplastic_detected=False,
-        biodegradation_rate=0.0,
-        environmental_impact_score=100.0
+# Bioplastics Information and Research
+@api_router.get("/bioplastics/info")
+async def get_bioplastics_info():
+    """Get comprehensive bioplastics information"""
+    return BIOPLASTICS_INFO
+
+@api_router.post("/bioplastics/research", response_model=BioplasticResearch)
+async def create_bioplastic_research(research: BioplasticResearchCreate):
+    """Create bioplastic research analysis"""
+    findings = generate_bioplastic_research_data(research)
+    
+    # Generate recommendations based on research focus
+    recommendations = []
+    if research.research_focus == "production_feasibility":
+        recommendations = [
+            "Conduct pilot production facility study",
+            "Partner with local universities for research",
+            "Engage with farmers for feedstock supply agreements",
+            "Seek government incentives for sustainable manufacturing"
+        ]
+    elif research.research_focus == "environmental_impact":
+        recommendations = [
+            "Develop composting infrastructure",
+            "Create consumer education programs",
+            "Monitor environmental benefits over time",
+            "Establish certification standards"
+        ]
+    else:
+        recommendations = [
+            "Conduct detailed market research",
+            "Develop business partnerships",
+            "Create marketing strategy for eco-conscious consumers",
+            "Explore export opportunities in East Africa"
+        ]
+    
+    research_obj = BioplasticResearch(
+        location_id=research.location_id,
+        location_name=research.location_name,
+        research_focus=research.research_focus,
+        bioplastic_type=research.bioplastic_type,
+        findings=findings,
+        recommendations=recommendations
     )
     
-    await db.bioplastics.insert_one(bioplastic_sample.dict())
-    return bioplastic_sample
+    await db.bioplastic_research.insert_one(research_obj.dict())
+    return research_obj
 
-@api_router.get("/bioplastics", response_model=List[BioplasticSample])
-async def get_bioplastic_samples():
-    samples = await db.bioplastics.find().to_list(100)
-    updated_samples = []
-    
-    for sample_dict in samples:
-        sample = BioplasticSample(**sample_dict)
-        updated_sample = generate_bioplastic_data(sample)
-        
-        # Update in database
-        await db.bioplastics.update_one(
-            {"id": sample.id},
-            {"$set": updated_sample.dict()}
-        )
-        
-        updated_samples.append(updated_sample)
-    
-    return updated_samples
-
-@api_router.get("/bioplastics/{sample_id}")
-async def get_bioplastic_sample(sample_id: str):
-    sample_dict = await db.bioplastics.find_one({"id": sample_id})
-    if not sample_dict:
-        raise HTTPException(status_code=404, detail="Bioplastic sample not found")
-    
-    sample = BioplasticSample(**sample_dict)
-    updated_sample = generate_bioplastic_data(sample)
-    
-    # Update in database
-    await db.bioplastics.update_one(
-        {"id": sample_id},
-        {"$set": updated_sample.dict()}
-    )
-    
-    return updated_sample
+@api_router.get("/bioplastics/research", response_model=List[BioplasticResearch])
+async def get_bioplastic_research():
+    """Get all bioplastic research"""
+    research = await db.bioplastic_research.find().sort("created_at", -1).to_list(50)
+    return [BioplasticResearch(**r) for r in research]
 
 # Environmental Alerts
 @api_router.get("/alerts", response_model=List[EnvironmentalAlert])
@@ -360,32 +409,21 @@ async def acknowledge_alert(alert_id: str):
 @api_router.get("/dashboard/summary")
 async def get_dashboard_summary():
     locations_count = await db.locations.count_documents({})
-    bioplastics_count = await db.bioplastics.count_documents({})
+    research_count = await db.bioplastic_research.count_documents({})
     unacknowledged_alerts = await db.alerts.count_documents({"acknowledged": False})
     
     # Get recent air quality readings
-    recent_air_quality = await db.air_quality.find().sort("timestamp", -1).limit(5).to_list(5)
+    recent_air_quality = await db.air_quality.find().sort("timestamp", -1).limit(3).to_list(3)
     
-    # Get bioplastics with highest degradation
-    bioplastics = await db.bioplastics.find().to_list(100)
-    if bioplastics:
-        # Update all samples and get top degraded ones
-        updated_samples = []
-        for sample_dict in bioplastics:
-            sample = BioplasticSample(**sample_dict)
-            updated_sample = generate_bioplastic_data(sample)
-            updated_samples.append(updated_sample)
-        
-        top_degraded = sorted(updated_samples, key=lambda x: x.degradation_percentage, reverse=True)[:3]
-    else:
-        top_degraded = []
+    # Get recent research
+    recent_research = await db.bioplastic_research.find().sort("created_at", -1).limit(3).to_list(3)
     
     return {
         "locations_count": locations_count,
-        "bioplastics_count": bioplastics_count,
+        "research_count": research_count,
         "unacknowledged_alerts": unacknowledged_alerts,
         "recent_air_quality": [AirQualityData(**aq) for aq in recent_air_quality],
-        "top_degraded_bioplastics": top_degraded
+        "recent_research": [BioplasticResearch(**r) for r in recent_research]
     }
 
 # Include the router in the main app
