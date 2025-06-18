@@ -552,7 +552,7 @@ const FeedbackSection = ({ darkMode }) => {
       {/* Embedded Google Form */}
       <div className="relative w-full h-96 rounded-lg overflow-hidden border">
         <iframe 
-          src="https://docs.google.com/forms/d/e/1FAIpQLSf5fGPJOvNbPGJT5NbxgYdXiSgYHgxgYdXiSgYHgxgYdXiSg/viewform?embedded=true"
+          src="https://forms.gle/bydjhF48JpRdhAcp9"
           className="w-full h-full"
           frameBorder="0" 
           marginHeight="0" 
@@ -561,24 +561,28 @@ const FeedbackSection = ({ darkMode }) => {
           Loading feedback form...
         </iframe>
         
-        {/* Fallback content */}
-        <div className={`absolute inset-0 flex items-center justify-center ${darkMode ? 'bg-gray-700' : 'bg-gray-100'} bg-opacity-90`}>
+        {/* Fallback content - shows when iframe doesn't load */}
+        <div className={`absolute inset-0 flex items-center justify-center ${darkMode ? 'bg-gray-700' : 'bg-gray-100'} bg-opacity-95`}>
           <div className="text-center p-6">
             <AnimatedIcon icon="feedback" className="text-4xl animated-bounce mb-4" />
             <h4 className={`text-lg font-semibold ${darkMode ? 'text-white' : 'text-gray-800'} mb-2`}>
-              Feedback Form
+              Community Feedback Form
             </h4>
             <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'} mb-4`}>
-              Share your thoughts on waste management in your area
+              Share your thoughts on waste management in your area and help us improve our environmental solutions.
             </p>
             <a 
-              href="https://docs.google.com/forms/d/e/1FAIpQLSf5fGPJOvNbPGJT5NbxgYdXiSgYHgxgYdXiSgYHgxgYdXiSg/viewform"
+              href="https://forms.gle/bydjhF48JpRdhAcp9"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-block bg-gradient-to-r from-blue-500 to-green-500 text-white px-6 py-2 rounded-lg hover:from-blue-600 hover:to-green-600 transition-all"
+              className="inline-block bg-gradient-to-r from-blue-500 to-green-500 text-white px-6 py-3 rounded-lg hover:from-blue-600 hover:to-green-600 transition-all shadow-lg flex items-center gap-2"
             >
+              <AnimatedIcon icon="feedback" className="animated-pulse" />
               Open Feedback Form
             </a>
+            <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'} mt-3`}>
+              Opens in a new tab • Takes 2-3 minutes to complete
+            </p>
           </div>
         </div>
       </div>
