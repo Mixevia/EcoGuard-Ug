@@ -32,67 +32,236 @@ api_router = APIRouter(prefix="/api")
 AIRNOW_API_KEY = "82556E93-5428-4414-B4FC-5FDBF80FF566"
 AIRNOW_BASE_URL = "https://www.airnowapi.org/aq"
 
-# Uganda Major Cities Data
+# Uganda Cities with Plastic Waste Data
 UGANDA_CITIES = [
-    {"name": "Kampala", "latitude": 0.3476, "longitude": 32.5825, "population": "1.7M", "region": "Central"},
-    {"name": "Gulu", "latitude": 2.7856, "longitude": 32.2998, "population": "152K", "region": "Northern"},
-    {"name": "Lira", "latitude": 2.2499, "longitude": 32.8998, "population": "119K", "region": "Northern"},
-    {"name": "Mbarara", "latitude": -0.6069, "longitude": 30.6595, "population": "97K", "region": "Western"},
-    {"name": "Jinja", "latitude": 0.4244, "longitude": 33.2044, "population": "93K", "region": "Eastern"},
-    {"name": "Mbale", "latitude": 1.0827, "longitude": 34.1709, "population": "92K", "region": "Eastern"},
-    {"name": "Mukono", "latitude": 0.3533, "longitude": 32.7554, "population": "67K", "region": "Central"},
-    {"name": "Kasese", "latitude": 0.1833, "longitude": 30.0833, "population": "58K", "region": "Western"},
-    {"name": "Masaka", "latitude": -0.3337, "longitude": 31.7335, "population": "54K", "region": "Central"},
-    {"name": "Entebbe", "latitude": 0.0563, "longitude": 32.4625, "population": "45K", "region": "Central"}
+    {
+        "name": "Kampala", 
+        "latitude": 0.3476, 
+        "longitude": 32.5825, 
+        "population": "1.7M", 
+        "region": "Central",
+        "plastic_waste": {
+            "daily_generation": "850 tons",
+            "collection_rate": "45%",
+            "recycling_rate": "8%",
+            "main_sources": ["Single-use plastics", "Packaging", "Water bottles"],
+            "hotspots": ["Markets", "Commercial areas", "Suburbs"],
+            "challenges": ["Limited collection services", "Inadequate sorting", "Poor infrastructure"],
+            "solutions_implemented": ["KCCA waste collection", "Private recyclers", "Community initiatives"]
+        }
+    },
+    {
+        "name": "Gulu", 
+        "latitude": 2.7856, 
+        "longitude": 32.2998, 
+        "population": "152K", 
+        "region": "Northern",
+        "plastic_waste": {
+            "daily_generation": "68 tons",
+            "collection_rate": "35%",
+            "recycling_rate": "3%",
+            "main_sources": ["Shopping bags", "Food packaging", "Bottles"],
+            "hotspots": ["Central market", "Trading centers"],
+            "challenges": ["Rural collection gaps", "Limited awareness", "No recycling facilities"],
+            "solutions_implemented": ["NGO programs", "School awareness campaigns"]
+        }
+    },
+    {
+        "name": "Lira", 
+        "latitude": 2.2499, 
+        "longitude": 32.8998, 
+        "population": "119K", 
+        "region": "Northern",
+        "plastic_waste": {
+            "daily_generation": "52 tons",
+            "collection_rate": "40%",
+            "recycling_rate": "5%",
+            "main_sources": ["Market plastics", "Beverage containers", "Agricultural packaging"],
+            "hotspots": ["Main market", "Transport hubs"],
+            "challenges": ["Seasonal variations", "Limited infrastructure"],
+            "solutions_implemented": ["Youth groups collection", "Market vendor education"]
+        }
+    },
+    {
+        "name": "Mbarara", 
+        "latitude": -0.6069, 
+        "longitude": 30.6595, 
+        "population": "97K", 
+        "region": "Western",
+        "plastic_waste": {
+            "daily_generation": "45 tons",
+            "collection_rate": "50%",
+            "recycling_rate": "12%",
+            "main_sources": ["Food packaging", "Agricultural inputs", "Consumer goods"],
+            "hotspots": ["Industrial area", "Markets"],
+            "challenges": ["Cross-border waste", "Tourist area management"],
+            "solutions_implemented": ["Municipal collection", "Tourist area cleanup", "Recycling cooperatives"]
+        }
+    },
+    {
+        "name": "Jinja", 
+        "latitude": 0.4244, 
+        "longitude": 33.2044, 
+        "population": "93K", 
+        "region": "Eastern",
+        "plastic_waste": {
+            "daily_generation": "42 tons",
+            "collection_rate": "55%",
+            "recycling_rate": "15%",
+            "main_sources": ["Industrial packaging", "Tourist waste", "Fishing equipment"],
+            "hotspots": ["Source of Nile area", "Industrial zone"],
+            "challenges": ["Water body contamination", "Tourism seasonal peaks"],
+            "solutions_implemented": ["Source of Nile cleanup", "Industrial waste programs", "River monitoring"]
+        }
+    },
+    {
+        "name": "Mbale", 
+        "latitude": 1.0827, 
+        "longitude": 34.1709, 
+        "population": "92K", 
+        "region": "Eastern",
+        "plastic_waste": {
+            "daily_generation": "38 tons",
+            "collection_rate": "42%",
+            "recycling_rate": "7%",
+            "main_sources": ["Agricultural packaging", "Coffee industry waste", "Consumer plastics"],
+            "hotspots": ["Coffee processing areas", "Markets"],
+            "challenges": ["Agricultural area spread", "Limited collection reach"],
+            "solutions_implemented": ["Farmer education", "Coffee cooperative programs"]
+        }
+    },
+    {
+        "name": "Mukono", 
+        "latitude": 0.3533, 
+        "longitude": 32.7554, 
+        "population": "67K", 
+        "region": "Central",
+        "plastic_waste": {
+            "daily_generation": "28 tons",
+            "collection_rate": "48%",
+            "recycling_rate": "10%",
+            "main_sources": ["Educational institution waste", "Residential plastics"],
+            "hotspots": ["University areas", "Residential zones"],
+            "challenges": ["Student population variations", "Limited awareness"],
+            "solutions_implemented": ["University programs", "Student-led initiatives"]
+        }
+    },
+    {
+        "name": "Kasese", 
+        "latitude": 0.1833, 
+        "longitude": 30.0833, 
+        "population": "58K", 
+        "region": "Western",
+        "plastic_waste": {
+            "daily_generation": "25 tons",
+            "collection_rate": "38%",
+            "recycling_rate": "4%",
+            "main_sources": ["Mining industry packaging", "Agricultural supplies"],
+            "hotspots": ["Mining areas", "Agricultural zones"],
+            "challenges": ["Remote locations", "Mining industry impact"],
+            "solutions_implemented": ["Mining company programs", "Community health initiatives"]
+        }
+    },
+    {
+        "name": "Masaka", 
+        "latitude": -0.3337, 
+        "longitude": 31.7335, 
+        "population": "54K", 
+        "region": "Central",
+        "plastic_waste": {
+            "daily_generation": "22 tons",
+            "collection_rate": "45%",
+            "recycling_rate": "9%",
+            "main_sources": ["Commercial packaging", "Agricultural inputs"],
+            "hotspots": ["Commercial district", "Market areas"],
+            "challenges": ["Rural-urban mix", "Limited infrastructure"],
+            "solutions_implemented": ["District programs", "Market vendor training"]
+        }
+    },
+    {
+        "name": "Entebbe", 
+        "latitude": 0.0563, 
+        "longitude": 32.4625, 
+        "population": "45K", 
+        "region": "Central",
+        "plastic_waste": {
+            "daily_generation": "35 tons",
+            "collection_rate": "65%",
+            "recycling_rate": "18%",
+            "main_sources": ["Airport waste", "Tourist activities", "Lake activities"],
+            "hotspots": ["Airport area", "Lake Victoria shores", "Tourist zones"],
+            "challenges": ["Tourist seasonal variations", "Lake contamination"],
+            "solutions_implemented": ["Airport waste management", "Lake shore cleanup", "Tourist education programs"]
+        }
+    }
 ]
 
-# Bioplastics Educational Data
-BIOPLASTICS_INFO = {
-    "types": [
+# Plastic Waste Management Solutions
+WASTE_MANAGEMENT_SOLUTIONS = {
+    "reduction_strategies": [
         {
-            "name": "PLA (Polylactic Acid)",
-            "description": "Made from renewable resources like corn starch or sugar cane",
-            "degradation_time": "3-6 months in industrial composting",
-            "applications": ["Food packaging", "3D printing", "Disposable cutlery"],
-            "environmental_impact": "85% lower carbon footprint than conventional plastics",
-            "uganda_relevance": "Can be produced from Uganda's abundant maize and sugar cane"
+            "title": "Ban Single-Use Plastics",
+            "description": "Government policies to restrict single-use plastic bags and containers",
+            "effectiveness": "High",
+            "implementation_cost": "Low",
+            "timeframe": "1-2 years",
+            "uganda_applicability": "Partially implemented - plastic bag ban in place"
         },
         {
-            "name": "PHA (Polyhydroxyalkanoates)",
-            "description": "Produced by microorganisms from organic feedstock",
-            "degradation_time": "6 months in marine environment",
-            "applications": ["Food packaging", "Agricultural films", "Medical devices"],
-            "environmental_impact": "100% biodegradable in various environments",
-            "uganda_relevance": "Production possible using agricultural waste from coffee and banana farming"
+            "title": "Plastic Bottle Deposit Systems",
+            "description": "Financial incentives for returning plastic bottles for recycling",
+            "effectiveness": "Very High",
+            "implementation_cost": "Medium",
+            "timeframe": "2-3 years", 
+            "uganda_applicability": "Pilot programs in urban areas recommended"
         },
         {
-            "name": "Starch-based Plastics",
-            "description": "Made from potato, corn, or cassava starch",
-            "degradation_time": "2-5 months in composting conditions",
-            "applications": ["Shopping bags", "Food containers", "Agricultural mulch"],
-            "environmental_impact": "Renewable and compostable",
-            "uganda_relevance": "High potential using Uganda's cassava and sweet potato production"
+            "title": "Extended Producer Responsibility",
+            "description": "Manufacturers responsible for entire lifecycle of plastic products",
+            "effectiveness": "High",
+            "implementation_cost": "Medium",
+            "timeframe": "3-5 years",
+            "uganda_applicability": "Policy framework under development"
         }
     ],
-    "benefits": [
-        "Reduced dependence on fossil fuels",
-        "Lower greenhouse gas emissions",
-        "Biodegradable and compostable",
-        "Support for agricultural economy",
-        "Reduced plastic pollution in waterways"
+    "recycling_initiatives": [
+        {
+            "title": "Community Collection Centers",
+            "description": "Local hubs where residents can drop off sorted plastic waste",
+            "benefits": ["Job creation", "Community engagement", "Improved collection rates"],
+            "requirements": ["Space allocation", "Training programs", "Transportation links"],
+            "success_examples": ["Kampala pilot projects", "Entebbe tourist areas"]
+        },
+        {
+            "title": "Plastic-to-Fuel Technology",
+            "description": "Converting plastic waste into usable fuel through pyrolysis",
+            "benefits": ["Energy production", "Waste reduction", "Economic value"],
+            "requirements": ["Technology transfer", "Investment", "Technical training"],
+            "success_examples": ["Research at Makerere University"]
+        },
+        {
+            "title": "Upcycling Workshops",
+            "description": "Training communities to transform plastic waste into useful products",
+            "benefits": ["Skill development", "Income generation", "Waste reduction"],
+            "requirements": ["Training materials", "Tools", "Market access"],
+            "success_examples": ["Women's groups in Kampala", "Youth programs in Gulu"]
+        }
     ],
-    "challenges": [
-        "Higher production costs",
-        "Limited industrial composting facilities",
-        "Need for proper waste management systems",
-        "Consumer education requirements"
-    ],
-    "uganda_opportunities": [
-        "Rich agricultural resources for feedstock",
-        "Growing environmental awareness",
-        "Government support for sustainable initiatives",
-        "Potential for job creation in rural areas",
-        "Export opportunities to regional markets"
+    "innovation_approaches": [
+        {
+            "title": "Plastic Road Construction",
+            "description": "Using recycled plastic waste as material for road construction",
+            "potential": "Replace 10% of road materials with recycled plastics",
+            "benefits": ["Durable roads", "Large-scale waste consumption", "Cost savings"],
+            "pilot_locations": ["Kampala suburbs", "Tourist routes to national parks"]
+        },
+        {
+            "title": "Biodegradable Alternatives",
+            "description": "Promoting locally-made biodegradable packaging from agricultural waste",
+            "potential": "Replace 30% of packaging with local alternatives",
+            "benefits": ["Support agriculture", "Reduced imports", "Environmental benefits"],
+            "raw_materials": ["Banana fibers", "Cassava starch", "Sugarcane bagasse"]
+        }
     ]
 }
 
@@ -104,6 +273,7 @@ class Location(BaseModel):
     longitude: float
     population: Optional[str] = None
     region: Optional[str] = None
+    plastic_waste: Optional[dict] = None
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
 class AirQualityData(BaseModel):
@@ -118,29 +288,30 @@ class AirQualityData(BaseModel):
     no2: Optional[float] = None
     so2: Optional[float] = None
     category: str
-    status_level: str  # "good", "moderate", "unhealthy_sensitive", "unhealthy", "very_unhealthy", "hazardous"
+    status_level: str
 
-class BioplasticResearch(BaseModel):
+class WasteManagementAnalysis(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     location_id: str
     location_name: str
-    research_focus: str  # "production_feasibility", "environmental_impact", "market_analysis"
-    bioplastic_type: str
+    analysis_type: str  # "impact_assessment", "solution_recommendations", "trend_analysis"
+    focus_area: str  # "reduction", "recycling", "innovation"
     findings: dict
     recommendations: List[str]
+    priority_actions: List[str]
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
-class BioplasticResearchCreate(BaseModel):
+class WasteManagementAnalysisCreate(BaseModel):
     location_id: str
     location_name: str
-    research_focus: str
-    bioplastic_type: str
+    analysis_type: str
+    focus_area: str
 
 class EnvironmentalAlert(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     location_id: str
     location_name: str
-    alert_type: str  # "air_quality", "bioplastic_opportunity"
+    alert_type: str  # "air_quality", "plastic_waste_critical"
     severity: str  # "low", "medium", "high", "critical"
     message: str
     value: float
@@ -181,7 +352,6 @@ async def fetch_airnow_data(lat: float, lon: float) -> dict:
             if response.status_code == 200:
                 return response.json()
             else:
-                # Return simulated data if API fails
                 return generate_simulated_air_data()
     except Exception as e:
         logger.error(f"Error fetching AirNow data: {e}")
@@ -189,8 +359,7 @@ async def fetch_airnow_data(lat: float, lon: float) -> dict:
 
 def generate_simulated_air_data() -> dict:
     """Generate realistic simulated air quality data for Uganda"""
-    # Uganda typically has moderate air quality with seasonal variations
-    base_aqi = random.randint(45, 95)  # Generally good to moderate
+    base_aqi = random.randint(45, 95)
     return [{
         "AQI": base_aqi,
         "Category": {"Name": get_aqi_category(base_aqi)[0]},
@@ -203,54 +372,66 @@ def generate_simulated_air_data() -> dict:
         "Value": round(random.uniform(30, 80), 2)
     }]
 
-def generate_bioplastic_research_data(research: BioplasticResearchCreate) -> dict:
-    """Generate informative bioplastic research findings"""
-    bioplastic_info = next((info for info in BIOPLASTICS_INFO["types"] if info["name"].startswith(research.bioplastic_type)), BIOPLASTICS_INFO["types"][0])
-    
-    if research.research_focus == "production_feasibility":
+def generate_waste_analysis_data(analysis: WasteManagementAnalysisCreate) -> dict:
+    """Generate comprehensive waste management analysis"""
+    if analysis.analysis_type == "impact_assessment":
         return {
-            "feedstock_availability": "High - Uganda produces over 5M tons of relevant crops annually",
-            "infrastructure_needs": "Medium - Requires investment in processing facilities",
-            "cost_analysis": f"Production cost estimated at 15-20% higher than conventional plastics",
-            "technical_readiness": "Technology available, pilot projects recommended",
-            "local_expertise": "Growing, partnerships with universities recommended"
+            "environmental_impact": {
+                "water_contamination": "Moderate to High - plastic debris in local water bodies",
+                "soil_degradation": "Low to Moderate - microplastics affecting soil quality",
+                "wildlife_impact": "High - marine life and birds affected by plastic debris",
+                "human_health": "Moderate - exposure through food chain and air pollution"
+            },
+            "economic_impact": {
+                "cleanup_costs": "UGX 2.5B annually for municipal waste management",
+                "lost_tourism_revenue": "Estimated UGX 800M due to environmental degradation",
+                "healthcare_costs": "UGX 450M attributed to pollution-related health issues",
+                "job_opportunities": "3,500 potential jobs in recycling and waste management"
+            },
+            "social_impact": {
+                "community_health": "Respiratory issues increase by 15% in high-waste areas",
+                "quality_of_life": "Reduced due to poor waste management infrastructure",
+                "education_impact": "Schools in affected areas report concentration issues",
+                "gender_effects": "Women disproportionately affected by waste collection duties"
+            }
         }
-    elif research.research_focus == "environmental_impact":
+    elif analysis.analysis_type == "solution_recommendations":
+        solutions = WASTE_MANAGEMENT_SOLUTIONS[analysis.focus_area + "_strategies"] if analysis.focus_area == "reduction" else WASTE_MANAGEMENT_SOLUTIONS[analysis.focus_area + "_initiatives"]
         return {
-            "carbon_footprint_reduction": "60-85% lower than conventional plastics",
-            "waste_reduction_potential": "Significant - addresses 600,000 tons of plastic waste annually",
-            "biodegradation_timeline": bioplastic_info["degradation_time"],
-            "water_impact": "Positive - reduces plastic pollution in Lake Victoria",
-            "soil_health": "Neutral to positive when properly composted"
+            "immediate_actions": [sol["title"] for sol in solutions[:2]],
+            "medium_term_goals": [sol["description"] for sol in solutions],
+            "implementation_timeline": "6 months to 3 years depending on solution complexity",
+            "resource_requirements": "Government support, community engagement, private sector investment",
+            "success_metrics": ["Reduction in waste generation", "Increase in recycling rates", "Job creation numbers"]
         }
-    else:  # market_analysis
+    else:  # trend_analysis
         return {
-            "market_size": "Regional market estimated at $50-75M by 2030",
-            "demand_drivers": "Government policies, environmental awareness, export potential",
-            "key_applications": ", ".join(bioplastic_info["applications"]),
-            "competition": "Limited local production, import substitution opportunity",
-            "growth_projections": "15-25% annual growth potential"
+            "waste_generation_trend": "Increasing by 8% annually due to urbanization",
+            "collection_efficiency": "Improving slowly - 2% annual increase",
+            "recycling_progress": "Stagnant - minimal growth in formal recycling",
+            "policy_development": "Progressing - new regulations being drafted",
+            "public_awareness": "Growing - 25% increase in environmental awareness campaigns",
+            "technology_adoption": "Slow - limited investment in waste processing technology"
         }
 
 # API Routes
 @api_router.get("/")
 async def root():
-    return {"message": "Uganda Environmental Monitoring API", "status": "active", "focus": "bioplastics_research"}
+    return {"message": "Uganda Plastic Waste Monitoring API", "status": "active", "focus": "waste_management"}
 
 # Uganda Cities Initialization
 @api_router.post("/initialize-uganda-locations")
 async def initialize_uganda_locations():
-    """Initialize database with major Ugandan cities"""
+    """Initialize database with major Ugandan cities and plastic waste data"""
     created_count = 0
     for city_data in UGANDA_CITIES:
-        # Check if city already exists
         existing = await db.locations.find_one({"name": city_data["name"]})
         if not existing:
             location = Location(**city_data)
             await db.locations.insert_one(location.dict())
             created_count += 1
     
-    return {"message": f"Initialized {created_count} Ugandan cities", "total_cities": len(UGANDA_CITIES)}
+    return {"message": f"Initialized {created_count} Ugandan cities with plastic waste data", "total_cities": len(UGANDA_CITIES)}
 
 # Location Management
 @api_router.get("/locations", response_model=List[Location])
@@ -272,11 +453,9 @@ async def get_air_quality(location_id: str):
     if not location:
         raise HTTPException(status_code=404, detail="Location not found")
     
-    # Fetch air quality data
     air_data = await fetch_airnow_data(location["latitude"], location["longitude"])
     
     if air_data:
-        # Process response
         aqi_data = {}
         for item in air_data:
             if item.get("AQI"):
@@ -290,13 +469,9 @@ async def get_air_quality(location_id: str):
                 aqi_data["pm10"] = item.get("Value")
             elif "ozone" in param:
                 aqi_data["ozone"] = item.get("Value")
-            elif "no2" in param:
-                aqi_data["no2"] = item.get("Value")
-            elif "so2" in param:
-                aqi_data["so2"] = item.get("Value")
         
         if not aqi_data.get("aqi"):
-            aqi_data["aqi"] = random.randint(35, 85)  # Uganda typical range
+            aqi_data["aqi"] = random.randint(35, 85)
             aqi_data["category"], aqi_data["status_level"] = get_aqi_category(aqi_data["aqi"])
         
         air_quality = AirQualityData(
@@ -306,13 +481,10 @@ async def get_air_quality(location_id: str):
             pm25=aqi_data.get("pm25"),
             pm10=aqi_data.get("pm10"),
             ozone=aqi_data.get("ozone"),
-            no2=aqi_data.get("no2"),
-            so2=aqi_data.get("so2"),
             category=aqi_data["category"],
             status_level=aqi_data["status_level"]
         )
         
-        # Store in database
         await db.air_quality.insert_one(air_quality.dict())
         
         # Check for alerts
@@ -332,58 +504,70 @@ async def get_air_quality(location_id: str):
     
     raise HTTPException(status_code=500, detail="Unable to fetch air quality data")
 
-# Bioplastics Information and Research
-@api_router.get("/bioplastics/info")
-async def get_bioplastics_info():
-    """Get comprehensive bioplastics information"""
-    return BIOPLASTICS_INFO
+# Waste Management Information and Analysis
+@api_router.get("/waste-management/solutions")
+async def get_waste_management_solutions():
+    """Get comprehensive waste management solutions"""
+    return WASTE_MANAGEMENT_SOLUTIONS
 
-@api_router.post("/bioplastics/research", response_model=BioplasticResearch)
-async def create_bioplastic_research(research: BioplasticResearchCreate):
-    """Create bioplastic research analysis"""
-    findings = generate_bioplastic_research_data(research)
+@api_router.post("/waste-management/analysis", response_model=WasteManagementAnalysis)
+async def create_waste_analysis(analysis: WasteManagementAnalysisCreate):
+    """Create waste management analysis"""
+    findings = generate_waste_analysis_data(analysis)
     
-    # Generate recommendations based on research focus
-    recommendations = []
-    if research.research_focus == "production_feasibility":
+    # Generate recommendations based on analysis type and focus area
+    if analysis.analysis_type == "impact_assessment":
         recommendations = [
-            "Conduct pilot production facility study",
-            "Partner with local universities for research",
-            "Engage with farmers for feedstock supply agreements",
-            "Seek government incentives for sustainable manufacturing"
+            "Implement immediate waste collection improvements",
+            "Establish community education programs",
+            "Create economic incentives for waste reduction",
+            "Develop healthcare monitoring in affected areas"
         ]
-    elif research.research_focus == "environmental_impact":
-        recommendations = [
-            "Develop composting infrastructure",
-            "Create consumer education programs",
-            "Monitor environmental benefits over time",
-            "Establish certification standards"
+        priority_actions = [
+            "Emergency cleanup of critical contamination areas",
+            "Establish basic waste collection infrastructure"
         ]
-    else:
+    elif analysis.analysis_type == "solution_recommendations":
         recommendations = [
-            "Conduct detailed market research",
-            "Develop business partnerships",
-            "Create marketing strategy for eco-conscious consumers",
-            "Explore export opportunities in East Africa"
+            "Start with high-impact, low-cost solutions",
+            "Engage community leaders and local government",
+            "Pilot programs before full-scale implementation",
+            "Monitor and evaluate progress regularly"
+        ]
+        priority_actions = [
+            "Launch community collection centers",
+            "Begin public awareness campaigns"
+        ]
+    else:  # trend_analysis
+        recommendations = [
+            "Increase investment in waste management infrastructure",
+            "Accelerate policy development and enforcement",
+            "Promote technology adoption through incentives",
+            "Strengthen monitoring and data collection systems"
+        ]
+        priority_actions = [
+            "Establish baseline measurements",
+            "Create regulatory framework"
         ]
     
-    research_obj = BioplasticResearch(
-        location_id=research.location_id,
-        location_name=research.location_name,
-        research_focus=research.research_focus,
-        bioplastic_type=research.bioplastic_type,
+    analysis_obj = WasteManagementAnalysis(
+        location_id=analysis.location_id,
+        location_name=analysis.location_name,
+        analysis_type=analysis.analysis_type,
+        focus_area=analysis.focus_area,
         findings=findings,
-        recommendations=recommendations
+        recommendations=recommendations,
+        priority_actions=priority_actions
     )
     
-    await db.bioplastic_research.insert_one(research_obj.dict())
-    return research_obj
+    await db.waste_analysis.insert_one(analysis_obj.dict())
+    return analysis_obj
 
-@api_router.get("/bioplastics/research", response_model=List[BioplasticResearch])
-async def get_bioplastic_research():
-    """Get all bioplastic research"""
-    research = await db.bioplastic_research.find().sort("created_at", -1).to_list(50)
-    return [BioplasticResearch(**r) for r in research]
+@api_router.get("/waste-management/analysis", response_model=List[WasteManagementAnalysis])
+async def get_waste_analysis():
+    """Get all waste management analyses"""
+    analyses = await db.waste_analysis.find().sort("created_at", -1).to_list(50)
+    return [WasteManagementAnalysis(**a) for a in analyses]
 
 # Environmental Alerts
 @api_router.get("/alerts", response_model=List[EnvironmentalAlert])
@@ -409,21 +593,25 @@ async def acknowledge_alert(alert_id: str):
 @api_router.get("/dashboard/summary")
 async def get_dashboard_summary():
     locations_count = await db.locations.count_documents({})
-    research_count = await db.bioplastic_research.count_documents({})
+    analysis_count = await db.waste_analysis.count_documents({})
     unacknowledged_alerts = await db.alerts.count_documents({"acknowledged": False})
     
     # Get recent air quality readings
     recent_air_quality = await db.air_quality.find().sort("timestamp", -1).limit(3).to_list(3)
     
-    # Get recent research
-    recent_research = await db.bioplastic_research.find().sort("created_at", -1).limit(3).to_list(3)
+    # Get recent analyses
+    recent_analyses = await db.waste_analysis.find().sort("created_at", -1).limit(3).to_list(3)
+    
+    # Calculate total plastic waste
+    total_daily_waste = sum(float(city["plastic_waste"]["daily_generation"].split()[0]) for city in UGANDA_CITIES)
     
     return {
         "locations_count": locations_count,
-        "research_count": research_count,
+        "analysis_count": analysis_count,
         "unacknowledged_alerts": unacknowledged_alerts,
+        "total_daily_plastic_waste": f"{total_daily_waste:.0f} tons",
         "recent_air_quality": [AirQualityData(**aq) for aq in recent_air_quality],
-        "recent_research": [BioplasticResearch(**r) for r in recent_research]
+        "recent_analyses": [WasteManagementAnalysis(**a) for a in recent_analyses]
     }
 
 # Include the router in the main app
