@@ -239,12 +239,18 @@ export const NASAClimateDashboard = ({ darkMode }) => {
   );
 };
 
-// Enhanced Map Component with NASA features
-export const EnhancedUgandaMap = ({ darkMode, onLocationSelect, selectedCity, cities }) => {
+// Real NASA Satellite Map Component
+export const NASASatelliteMap = ({ darkMode, onLocationSelect, selectedCity, cities }) => {
   const [nasaData, setNasaData] = useState({});
-  const [showSatellite, setShowSatellite] = useState(false);
-  const [satelliteImagery, setSatelliteImagery] = useState({});
+  const [showSatellite, setShowSatellite] = useState(true);
   const [locationMapping, setLocationMapping] = useState({});
+  const [mapReady, setMapReady] = useState(false);
+
+  // Uganda bounds
+  const ugandaBounds = [
+    [-1.4433, 29.5795], // Southwest
+    [4.2499, 35.0360]   // Northeast
+  ];
 
   // Fetch location mapping from backend to match frontend cities with backend IDs
   useEffect(() => {
@@ -265,8 +271,10 @@ export const EnhancedUgandaMap = ({ darkMode, onLocationSelect, selectedCity, ci
         });
         
         setLocationMapping(mapping);
+        setMapReady(true);
       } catch (error) {
         console.error('Error fetching location mapping:', error);
+        setMapReady(true); // Still show map even if mapping fails
       }
     };
 
@@ -277,7 +285,6 @@ export const EnhancedUgandaMap = ({ darkMode, onLocationSelect, selectedCity, ci
 
   const fetchNASAData = async (cityId) => {
     try {
-      // Use the backend location ID instead of frontend city ID
       const backendLocationId = locationMapping[cityId];
       if (!backendLocationId) {
         console.warn(`No backend location ID found for frontend city ID: ${cityId}`);
@@ -294,31 +301,9 @@ export const EnhancedUgandaMap = ({ darkMode, onLocationSelect, selectedCity, ci
     }
   };
 
-  const fetchSatelliteImagery = async (cityId) => {
-    try {
-      // Use the backend location ID instead of frontend city ID
-      const backendLocationId = locationMapping[cityId];
-      if (!backendLocationId) {
-        console.warn(`No backend location ID found for frontend city ID: ${cityId}`);
-        return;
-      }
-      
-      const response = await axios.get(`${API}/nasa/imagery/${backendLocationId}`);
-      setSatelliteImagery(prev => ({
-        ...prev,
-        [cityId]: response.data
-      }));
-    } catch (error) {
-      console.error('Error fetching satellite imagery:', error);
-    }
-  };
-
   const handleCityClick = (city) => {
     onLocationSelect(city);
     fetchNASAData(city.id);
-    if (showSatellite) {
-      fetchSatelliteImagery(city.id);
-    }
   };
 
   const getClimateStatusColor = (climateData) => {
@@ -331,12 +316,54 @@ export const EnhancedUgandaMap = ({ darkMode, onLocationSelect, selectedCity, ci
     return "#3b82f6"; // blue - cool
   };
 
+  // Custom marker icons based on temperature
+  const createCustomIcon = (city, climateData) => {
+    const temp = climateData?.nasa_climate?.temperature;
+    const color = getClimateStatusColor(climateData);
+    
+    return L.divIcon({
+      className: 'custom-marker',
+      html: `
+        <div style="
+          background-color: ${color};
+          width: 30px;
+          height: 30px;
+          border-radius: 50%;
+          border: 3px solid white;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: white;
+          font-weight: bold;
+          font-size: 12px;
+          box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+        ">
+          ${temp ? Math.round(temp) + '°' : '?'}
+        </div>
+      `,
+      iconSize: [30, 30],
+      iconAnchor: [15, 15],
+      popupAnchor: [0, -15],
+    });
+  };
+
+  if (!mapReady) {
+    return (
+      <div className="flex items-center justify-center h-96 bg-gray-100 dark:bg-gray-800 rounded-xl">
+        <div className="text-center">
+          <div className="animate-spin w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-3"></div>
+          <p className={`${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>Loading NASA Satellite Map...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4">
       {/* Enhanced Controls */}
       <div className="flex justify-between items-center">
         <h3 className={`text-lg font-semibold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
-          Uganda Environmental Map
+          NASA Satellite Map - Uganda
         </h3>
         <div className="flex space-x-2">
           <button
@@ -347,88 +374,76 @@ export const EnhancedUgandaMap = ({ darkMode, onLocationSelect, selectedCity, ci
                 : darkMode ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
             }`}
           >
-            🛰️ Satellite View
+            🛰️ {showSatellite ? 'Satellite' : 'Standard'}
           </button>
         </div>
       </div>
 
-      {/* Enhanced Map with NASA indicators */}
-      <div className="relative bg-gradient-to-b from-blue-100 to-green-100 rounded-xl overflow-hidden shadow-lg" style={{ height: '400px' }}>
-        <svg viewBox="0 0 400 300" className="w-full h-full">
-          {/* Uganda Country Outline */}
-          <path
-            d="M50 80 Q70 75 90 78 L130 75 Q150 78 170 82 L210 80 Q240 85 270 90 L300 95 Q330 100 350 110 L365 125 Q375 140 370 160 L365 180 Q355 200 340 215 L320 230 Q290 240 260 242 L220 245 Q180 248 140 245 L100 242 Q70 235 50 220 L35 200 Q25 180 30 160 L35 140 Q40 120 50 100 Z"
-            fill={showSatellite ? "#4ade80" : "#10b981"}
-            stroke="#059669"
-            strokeWidth="2"
-            className="opacity-80"
+      {/* Real Satellite Map */}
+      <div className="relative h-96 rounded-xl overflow-hidden shadow-lg">
+        <MapContainer 
+          bounds={ugandaBounds}
+          style={{ height: '100%', width: '100%' }}
+          scrollWheelZoom={true}
+          className="rounded-xl"
+        >
+          {/* Satellite or Standard Tile Layer */}
+          <TileLayer
+            url={showSatellite 
+              ? "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+              : "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            }
+            attribution={showSatellite 
+              ? '&copy; <a href="https://www.esri.com/">Esri</a> &mdash; Source: Esri, Maxar, GeoEye, Earthstar Geographics, CNES/Airbus DS, USDA, USGS, AeroGRID, IGN, and the GIS User Community'
+              : '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }
           />
 
-          {/* Enhanced Cities with NASA climate indicators */}
+          {/* City Markers with NASA Climate Data */}
           {cities?.map((city) => {
-            const x = ((city.lng - 29.5795) / (35.0360 - 29.5795)) * 320 + 40;
-            const y = 260 - ((city.lat - (-1.4433)) / (4.2499 - (-1.4433))) * 200;
-            const isSelected = selectedCity?.id === city.id;
-            const citySize = Math.sqrt(city.population / 100000) + 4;
             const climateData = nasaData[city.id];
-            const statusColor = getClimateStatusColor(climateData);
+            const isSelected = selectedCity?.id === city.id;
             
             return (
-              <g key={city.id}>
-                {/* NASA Climate Status Ring */}
-                {climateData?.nasa_climate && (
-                  <circle
-                    cx={x}
-                    cy={y}
-                    r={citySize + 4}
-                    fill="none"
-                    stroke={statusColor}
-                    strokeWidth="2"
-                    className="opacity-60"
-                  />
-                )}
-                
-                {/* City marker */}
-                <circle
-                  cx={x}
-                  cy={y}
-                  r={isSelected ? citySize + 2 : citySize}
-                  fill={isSelected ? "#f59e0b" : statusColor}
-                  stroke="white"
-                  strokeWidth={isSelected ? "3" : "2"}
-                  className="cursor-pointer hover:opacity-80 transition-all"
-                  onClick={() => handleCityClick(city)}
-                />
-                
-                {/* Temperature indicator */}
-                {climateData?.nasa_climate?.temperature && (
-                  <text
-                    x={x}
-                    y={y + 3}
-                    textAnchor="middle"
-                    className="text-xs fill-white font-bold"
-                    style={{ fontSize: '10px' }}
-                  >
-                    {Math.round(climateData.nasa_climate.temperature)}°
-                  </text>
-                )}
-                
-                {/* City label */}
-                <text
-                  x={x}
-                  y={y - citySize - 8}
-                  textAnchor="middle"
-                  className="text-xs font-medium fill-gray-800"
-                >
-                  {city.name}
-                </text>
-              </g>
+              <Marker
+                key={city.id}
+                position={[city.lat, city.lng]}
+                icon={createCustomIcon(city, climateData)}
+                eventHandlers={{
+                  click: () => handleCityClick(city),
+                }}
+              >
+                <Popup>
+                  <div className="text-center">
+                    <h3 className="font-bold text-lg">{city.name}</h3>
+                    <p className="text-sm text-gray-600">{city.district} District</p>
+                    <div className="mt-2 space-y-1">
+                      {climateData?.nasa_climate && (
+                        <>
+                          <div className="text-sm">
+                            <strong>NASA Temperature:</strong> {climateData.nasa_climate.temperature?.toFixed(1)}°C
+                          </div>
+                          <div className="text-sm">
+                            <strong>Precipitation:</strong> {climateData.nasa_climate.precipitation?.toFixed(1)}mm
+                          </div>
+                          <div className="text-sm">
+                            <strong>Humidity:</strong> {climateData.nasa_climate.humidity?.toFixed(0)}%
+                          </div>
+                        </>
+                      )}
+                      <div className="text-sm">
+                        <strong>Population:</strong> {city.population.toLocaleString()}
+                      </div>
+                    </div>
+                  </div>
+                </Popup>
+              </Marker>
             );
           })}
-        </svg>
+        </MapContainer>
 
         {/* NASA Legend */}
-        <div className="absolute bottom-4 right-4 bg-white/95 rounded-lg p-3 text-xs">
+        <div className="absolute bottom-4 right-4 bg-white/95 rounded-lg p-3 text-xs shadow-lg">
           <div className="font-medium text-gray-700 mb-2">NASA Climate Status</div>
           <div className="space-y-1">
             <div className="flex items-center space-x-2">
