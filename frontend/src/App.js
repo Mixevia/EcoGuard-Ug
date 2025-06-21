@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import './App.css';
-import { NASAClimateDashboard, EnhancedUgandaMap } from './NASAComponents';
+import { NASAClimateDashboard, NASASatelliteMap } from './NASAComponents';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
