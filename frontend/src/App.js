@@ -2160,8 +2160,8 @@ const BottomNavigation = ({ activeTab, onTabChange, darkMode }) => {
   const tabs = [
     { key: 'home', label: 'Home', icon: 'home' },
     { key: 'map', label: 'Map', icon: 'map' },
+    { key: 'nasa', label: 'NASA', icon: 'sun' },
     { key: 'learn', label: 'Learn', icon: 'learn' },
-    { key: 'community', label: 'Community', icon: 'community' },
     { key: 'report', label: 'Report', icon: 'report' }
   ];
 
