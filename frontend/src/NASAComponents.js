@@ -1,8 +1,19 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
+import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
+
+// Fix Leaflet default markers
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+});
 
 // NASA Climate Dashboard Component
 export const NASAClimateDashboard = ({ darkMode }) => {
@@ -14,12 +25,14 @@ export const NASAClimateDashboard = ({ darkMode }) => {
   const fetchNASAOverview = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`${API}/nasa/overview`);
-      setNasaOverview(response.data);
       setError(null);
+      console.log('Fetching NASA overview from:', `${API}/nasa/overview`);
+      const response = await axios.get(`${API}/nasa/overview`);
+      console.log('NASA overview response:', response.data);
+      setNasaOverview(response.data);
     } catch (err) {
       console.error('Error fetching NASA overview:', err);
-      setError('Failed to load NASA climate data');
+      setError('Failed to load NASA climate data: ' + err.message);
     } finally {
       setLoading(false);
     }
@@ -27,7 +40,9 @@ export const NASAClimateDashboard = ({ darkMode }) => {
 
   const fetchLocationClimate = async (locationId) => {
     try {
+      console.log('Fetching climate for location:', locationId);
       const response = await axios.get(`${API}/nasa/climate/${locationId}`);
+      console.log('Location climate response:', response.data);
       setSelectedLocation(response.data);
     } catch (err) {
       console.error('Error fetching location climate:', err);
@@ -56,11 +71,11 @@ export const NASAClimateDashboard = ({ darkMode }) => {
     return (
       <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-xl p-6 shadow-lg`}>
         <div className="text-center">
-          <div className="text-red-500 mb-2">🛰️</div>
-          <p className={`${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>{error}</p>
+          <div className="text-red-500 mb-2 text-4xl">🛰️</div>
+          <p className={`${darkMode ? 'text-gray-300' : 'text-gray-600'} mb-3`}>{error}</p>
           <button 
             onClick={fetchNASAOverview}
-            className="mt-3 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+            className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
           >
             Retry
           </button>
@@ -68,6 +83,19 @@ export const NASAClimateDashboard = ({ darkMode }) => {
       </div>
     );
   }
+
+  if (!nasaOverview || !nasaOverview.locations) {
+    return (
+      <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-xl p-6 shadow-lg`}>
+        <div className="text-center">
+          <div className="text-yellow-500 mb-2 text-4xl">⚠️</div>
+          <p className={`${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>No NASA data available</p>
+        </div>
+      </div>
+    );
+  }
+
+  const avgTemp = nasaOverview.locations.reduce((sum, loc) => sum + (loc.current_temp || 0), 0) / nasaOverview.locations.length;
 
   return (
     <div className="space-y-6">
@@ -82,7 +110,7 @@ export const NASAClimateDashboard = ({ darkMode }) => {
               NASA Climate Monitoring
             </h2>
             <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-              Real-time satellite data for Uganda • Last updated: {new Date(nasaOverview?.last_updated).toLocaleTimeString()}
+              Real-time satellite data for Uganda • Last updated: {new Date(nasaOverview.last_updated).toLocaleTimeString()}
             </p>
           </div>
         </div>
@@ -90,19 +118,19 @@ export const NASAClimateDashboard = ({ darkMode }) => {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="text-center p-4 bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-lg">
             <div className={`text-2xl font-bold ${darkMode ? 'text-blue-400' : 'text-blue-600'}`}>
-              {nasaOverview?.total_locations}
+              {nasaOverview.total_locations}
             </div>
             <div className={`text-sm ${darkMode ? 'text-blue-300' : 'text-blue-800'}`}>Monitored Cities</div>
           </div>
           <div className="text-center p-4 bg-gradient-to-r from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 rounded-lg">
             <div className={`text-2xl font-bold ${darkMode ? 'text-green-400' : 'text-green-600'}`}>
-              {nasaOverview?.locations?.filter(l => l.current_temp).length}
+              {nasaOverview.locations.filter(l => l.current_temp).length}
             </div>
             <div className={`text-sm ${darkMode ? 'text-green-300' : 'text-green-800'}`}>Active Sensors</div>
           </div>
           <div className="text-center p-4 bg-gradient-to-r from-yellow-50 to-yellow-100 dark:from-yellow-900/20 dark:to-yellow-800/20 rounded-lg">
             <div className={`text-2xl font-bold ${darkMode ? 'text-yellow-400' : 'text-yellow-600'}`}>
-              {nasaOverview?.locations?.reduce((avg, l) => avg + (l.current_temp || 0), 0) / (nasaOverview?.locations?.filter(l => l.current_temp).length || 1) || 0}°C
+              {avgTemp.toFixed(1)}°C
             </div>
             <div className={`text-sm ${darkMode ? 'text-yellow-300' : 'text-yellow-800'}`}>Avg Temperature</div>
           </div>
@@ -116,8 +144,8 @@ export const NASAClimateDashboard = ({ darkMode }) => {
       </div>
 
       {/* Location Climate Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {nasaOverview?.locations?.map((location) => (
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {nasaOverview.locations.map((location) => (
           <div 
             key={location.location_id}
             className={`${darkMode ? 'bg-gray-800 hover:bg-gray-700' : 'bg-white hover:bg-gray-50'} rounded-xl p-4 shadow-lg transition-colors cursor-pointer`}
