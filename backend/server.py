@@ -32,6 +32,11 @@ api_router = APIRouter(prefix="/api")
 AIRNOW_API_KEY = "82556E93-5428-4414-B4FC-5FDBF80FF566"
 AIRNOW_BASE_URL = "https://www.airnowapi.org/aq"
 
+# NASA API Configuration
+NASA_API_KEY = os.environ.get('NASA_API_KEY', "SvoogQgtFAJL3biOPpPwTjcPPHEq9z0sDRneRenJ")
+NASA_EARTH_URL = "https://api.nasa.gov/planetary/earth"
+NASA_POWER_URL = "https://power.larc.nasa.gov/api/temporal/daily/point"
+
 # Uganda Cities with Plastic Waste Data
 UGANDA_CITIES = [
     {
