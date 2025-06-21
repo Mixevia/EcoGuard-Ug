@@ -27,9 +27,23 @@ export const NASAClimateDashboard = ({ darkMode }) => {
       setLoading(true);
       setError(null);
       console.log('Fetching NASA overview from:', `${API}/nasa/overview`);
-      const response = await axios.get(`${API}/nasa/overview`);
-      console.log('NASA overview response:', response.data);
-      setNasaOverview(response.data);
+      
+      const response = await fetch(`${API}/nasa/overview`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      console.log('Response status:', response.status);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      console.log('NASA overview response:', data);
+      setNasaOverview(data);
     } catch (err) {
       console.error('Error fetching NASA overview:', err);
       setError('Failed to load NASA climate data: ' + err.message);
