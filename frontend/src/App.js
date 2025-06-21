@@ -2212,11 +2212,11 @@ const App = () => {
       case 'map':
         return showLocationDetails && selectedCity 
           ? <LocationDetails city={selectedCity} darkMode={darkMode} onBack={handleBackToMap} />
-          : <UgandaMapComponent darkMode={darkMode} onLocationSelect={handleLocationSelect} selectedCity={selectedCity} />;
+          : <EnhancedUgandaMap darkMode={darkMode} onLocationSelect={handleLocationSelect} selectedCity={selectedCity} cities={UGANDA_CITIES_ENHANCED} />;
+      case 'nasa':
+        return <NASAClimateDashboard darkMode={darkMode} />;
       case 'learn':
         return <LearnSection darkMode={darkMode} />;
-      case 'community':
-        return <CommunitySection darkMode={darkMode} />;
       case 'report':
         return <ReportComponent darkMode={darkMode} />;
       default:
