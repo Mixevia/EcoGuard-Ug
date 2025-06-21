@@ -343,7 +343,7 @@ frontend:
         comment: "Implemented enhanced city detail panels with NASA data badge, comprehensive climate data section, and metric selection tabs"
       - working: false
         agent: "testing"
-        comment: "The Enhanced City Detail Panels are not working correctly. When clicking on a city from the map, the location details panel does not open. Unable to verify NASA DATA badge, climate data section, or metric selection tabs."
+        comment: "The Enhanced City Detail Panels are not working correctly. When clicking on a city from the map, the location details panel does not open. No console errors are detected, suggesting an issue with the click event handling or component rendering logic."
 
 metadata:
   created_by: "main_agent"
