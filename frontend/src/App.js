@@ -2195,7 +2195,7 @@ const App = () => {
       case 'map':
         return showLocationDetails && selectedCity 
           ? <LocationDetails city={selectedCity} darkMode={darkMode} onBack={handleBackToMap} />
-          : <EnhancedUgandaMap darkMode={darkMode} onLocationSelect={handleLocationSelect} selectedCity={selectedCity} cities={UGANDA_CITIES_ENHANCED} />;
+          : <NASASatelliteMap darkMode={darkMode} onLocationSelect={handleLocationSelect} selectedCity={selectedCity} cities={UGANDA_CITIES_ENHANCED} />;
       case 'nasa':
         return <NASAClimateDashboard darkMode={darkMode} />;
       case 'learn':
