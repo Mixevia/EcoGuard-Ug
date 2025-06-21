@@ -1078,21 +1078,6 @@ const LocationDetails = ({ city, darkMode, onBack }) => {
           </button>
         ))}
       </div>
-          { key: 'airQuality', label: 'Air Quality', icon: 'wind' },
-          { key: 'temperature', label: 'Temperature', icon: 'temperature' }
-        ].map((tab) => (
-          <button
-            key={tab.key}
-            onClick={() => setSelectedMetric(tab.key)}
-            className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center space-x-2 ${
-              selectedMetric === tab.key
-                ? 'bg-white text-teal-600 shadow-sm dark:bg-gray-700 dark:text-teal-400'
-                : darkMode ? 'text-gray-400 hover:text-gray-200' : 'text-gray-600 hover:text-gray-800'
-            }`}
-          >
-            <SvgIcon name={tab.icon} className="w-4 h-4" />
-            <span>{tab.label}</span>
-          </button>
         ))}
       </div>
 
