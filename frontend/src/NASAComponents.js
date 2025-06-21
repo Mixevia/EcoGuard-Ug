@@ -316,10 +316,23 @@ export const NASASatelliteMap = ({ darkMode, onLocationSelect, selectedCity, cit
         return;
       }
       
-      const response = await axios.get(`${API}/locations/${backendLocationId}/enhanced`);
+      console.log('Fetching NASA data for city:', cityId, 'backend ID:', backendLocationId);
+      const response = await fetch(`${API}/locations/${backendLocationId}/enhanced`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      console.log('NASA data response:', data);
       setNasaData(prev => ({
         ...prev,
-        [cityId]: response.data
+        [cityId]: data
       }));
     } catch (error) {
       console.error('Error fetching NASA data:', error);
