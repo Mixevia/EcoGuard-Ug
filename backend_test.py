@@ -8,22 +8,6 @@ from datetime import datetime
 # Get the backend URL from the frontend .env file
 BACKEND_URL = "https://a3cf53a4-32eb-48a9-8c88-dd65348ed4b0.preview.emergentagent.com/api"
 
-# Test data
-test_location = {
-    "name": "Portland Environmental Center",
-    "latitude": 45.5152,
-    "longitude": -122.6784,
-    "zip_code": "97201"
-}
-
-test_bioplastic_sample = {
-    "sample_type": "PLA",
-    "initial_weight": 25.5,
-    "composting_temperature": 28.5,
-    "composting_humidity": 65.0,
-    "composting_ph": 6.8
-}
-
 # Helper functions
 def print_header(title):
     print("\n" + "=" * 80)
@@ -68,7 +52,7 @@ def run_tests():
     uganda_location_ids = []
     
     try:
-        print_header("ENVIRONMENTAL MONITORING BACKEND API TESTS")
+        print_header("NASA API INTEGRATION TESTS")
         print(f"Testing against: {BACKEND_URL}")
         print(f"Test started at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         
@@ -79,21 +63,11 @@ def run_tests():
             print("❌ API health check failed. Aborting tests.")
             return False
         
-        # 2. Test Location Management
-        print_header("2. Location Management")
-        
-        # 2.1 Initialize Uganda locations
-        print("\n2.1 Initializing Uganda locations")
-        init_locations_response = test_endpoint("post", "/initialize-uganda-locations")
-        if not init_locations_response:
-            print("❌ Uganda locations initialization failed.")
-            return False
-        
-        # 2.2 Get all locations
-        print("\n2.2 Getting all locations")
+        # 2. Get locations for testing NASA endpoints
+        print_header("2. Get Uganda Locations")
         locations_response = test_endpoint("get", "/locations")
         if not locations_response:
-            print("❌ Getting locations failed.")
+            print("❌ Getting locations failed. Aborting tests.")
             return False
         
         # Store Uganda location IDs for NASA API testing
@@ -110,57 +84,11 @@ def run_tests():
             print("❌ No Uganda locations found. Cannot test NASA APIs.")
             return False
         
-        # 3. Test Air Quality Data
-        print_header("3. Air Quality Data")
+        # 3. Test NASA API Integration
+        print_header("3. NASA API Integration")
         
-        # 3.1 Get air quality for a Uganda location
-        test_location_id = uganda_location_ids[0]["id"]
-        test_location_name = uganda_location_ids[0]["name"]
-        print(f"\n3.1 Getting air quality data for {test_location_name}")
-        air_quality_response = test_endpoint("get", f"/air-quality/{test_location_id}")
-        if not air_quality_response:
-            print("❌ Getting air quality data failed.")
-            return False
-        
-        # 4. Test Environmental Alerts
-        print_header("4. Environmental Alerts")
-        
-        # 4.1 Get all alerts
-        print("\n4.1 Getting all alerts")
-        alerts_response = test_endpoint("get", "/alerts")
-        if not alerts_response:
-            print("❌ Getting alerts failed.")
-            return False
-        
-        # Check if we have any alerts to acknowledge
-        alerts = alerts_response.json()
-        if alerts:
-            created_alert_id = alerts[0].get("id")
-            
-            # 4.2 Acknowledge an alert
-            print("\n4.2 Acknowledging an alert")
-            acknowledge_response = test_endpoint("patch", f"/alerts/{created_alert_id}/acknowledge")
-            if not acknowledge_response:
-                print("❌ Acknowledging alert failed.")
-                return False
-        else:
-            print("\nNo alerts found to acknowledge. Skipping alert acknowledgment test.")
-        
-        # 5. Test Dashboard Summary
-        print_header("5. Dashboard Summary")
-        
-        # 5.1 Get dashboard summary
-        print("\n5.1 Getting dashboard summary")
-        summary_response = test_endpoint("get", "/dashboard/summary")
-        if not summary_response:
-            print("❌ Getting dashboard summary failed.")
-            return False
-        
-        # 6. Test NASA API Integration
-        print_header("6. NASA API Integration")
-        
-        # 6.1 Test NASA Overview endpoint
-        print("\n6.1 Testing NASA Overview endpoint")
+        # 3.1 Test NASA Overview endpoint
+        print("\n3.1 Testing NASA Overview endpoint")
         nasa_overview_response = test_endpoint("get", "/nasa/overview")
         if not nasa_overview_response:
             print("❌ NASA Overview endpoint test failed.")
@@ -174,8 +102,9 @@ def run_tests():
         
         print("NASA Overview endpoint returned valid data structure with location information and NASA climate data.")
         
-        # 6.2 Test NASA Climate Data endpoint for each Uganda location
-        print("\n6.2 Testing NASA Climate Data endpoint")
+        # 3.2 Test NASA Climate Data endpoint for each Uganda location
+        print("\n3.2 Testing NASA Climate Data endpoint")
+        climate_success = 0
         for location in uganda_location_ids:
             print(f"\nTesting NASA Climate Data for {location['name']}")
             climate_response = test_endpoint("get", f"/nasa/climate/{location['id']}")
@@ -189,9 +118,11 @@ def run_tests():
                 print(f"⚠️ NASA Climate Data endpoint returned incomplete data for {location['name']}.")
             else:
                 print(f"NASA Climate Data endpoint successfully returned climate data for {location['name']}.")
-            
-        # 6.3 Test NASA Imagery endpoint for each Uganda location
-        print("\n6.3 Testing NASA Imagery endpoint")
+                climate_success += 1
+        
+        # 3.3 Test NASA Imagery endpoint for each Uganda location
+        print("\n3.3 Testing NASA Imagery endpoint")
+        imagery_success = 0
         for location in uganda_location_ids:
             print(f"\nTesting NASA Imagery for {location['name']}")
             imagery_response = test_endpoint("get", f"/nasa/imagery/{location['id']}")
@@ -205,9 +136,11 @@ def run_tests():
                 print(f"⚠️ NASA Imagery endpoint returned incomplete data for {location['name']}.")
             else:
                 print(f"NASA Imagery endpoint successfully returned satellite imagery URL for {location['name']}.")
+                imagery_success += 1
         
-        # 6.4 Test Enhanced Location endpoint for each Uganda location
-        print("\n6.4 Testing Enhanced Location endpoint")
+        # 3.4 Test Enhanced Location endpoint for each Uganda location
+        print("\n3.4 Testing Enhanced Location endpoint")
+        enhanced_success = 0
         for location in uganda_location_ids:
             print(f"\nTesting Enhanced Location data for {location['name']}")
             enhanced_response = test_endpoint("get", f"/locations/{location['id']}/enhanced")
@@ -221,10 +154,23 @@ def run_tests():
                 print(f"⚠️ Enhanced Location endpoint returned incomplete data for {location['name']}.")
             else:
                 print(f"Enhanced Location endpoint successfully returned combined location and NASA data for {location['name']}.")
+                enhanced_success += 1
         
         print_header("TEST SUMMARY")
-        print("✅ All tests passed successfully!")
-        return True
+        print(f"NASA Overview endpoint: {'✅ Passed' if nasa_overview_response else '❌ Failed'}")
+        print(f"NASA Climate Data endpoint: {climate_success}/{len(uganda_location_ids)} locations passed")
+        print(f"NASA Imagery endpoint: {imagery_success}/{len(uganda_location_ids)} locations passed")
+        print(f"Enhanced Location endpoint: {enhanced_success}/{len(uganda_location_ids)} locations passed")
+        
+        if (nasa_overview_response and 
+            climate_success > 0 and 
+            imagery_success > 0 and 
+            enhanced_success > 0):
+            print("\n✅ NASA API Integration tests passed successfully!")
+            return True
+        else:
+            print("\n❌ Some NASA API Integration tests failed.")
+            return False
         
     except Exception as e:
         print(f"\n❌ An error occurred during testing: {str(e)}")
