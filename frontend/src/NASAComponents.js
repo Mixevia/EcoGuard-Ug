@@ -216,10 +216,47 @@ export const EnhancedUgandaMap = ({ darkMode, onLocationSelect, selectedCity, ci
   const [nasaData, setNasaData] = useState({});
   const [showSatellite, setShowSatellite] = useState(false);
   const [satelliteImagery, setSatelliteImagery] = useState({});
+  const [locationMapping, setLocationMapping] = useState({});
+
+  // Fetch location mapping from backend to match frontend cities with backend IDs
+  useEffect(() => {
+    const fetchLocationMapping = async () => {
+      try {
+        const response = await axios.get(`${API}/locations`);
+        const backendLocations = response.data;
+        const mapping = {};
+        
+        // Map frontend city names to backend location IDs
+        backendLocations.forEach(location => {
+          const frontendCity = cities?.find(city => 
+            city.name.toLowerCase() === location.name.toLowerCase()
+          );
+          if (frontendCity) {
+            mapping[frontendCity.id] = location.id;
+          }
+        });
+        
+        setLocationMapping(mapping);
+      } catch (error) {
+        console.error('Error fetching location mapping:', error);
+      }
+    };
+
+    if (cities && cities.length > 0) {
+      fetchLocationMapping();
+    }
+  }, [cities]);
 
   const fetchNASAData = async (cityId) => {
     try {
-      const response = await axios.get(`${API}/locations/${cityId}/enhanced`);
+      // Use the backend location ID instead of frontend city ID
+      const backendLocationId = locationMapping[cityId];
+      if (!backendLocationId) {
+        console.warn(`No backend location ID found for frontend city ID: ${cityId}`);
+        return;
+      }
+      
+      const response = await axios.get(`${API}/locations/${backendLocationId}/enhanced`);
       setNasaData(prev => ({
         ...prev,
         [cityId]: response.data
@@ -231,7 +268,14 @@ export const EnhancedUgandaMap = ({ darkMode, onLocationSelect, selectedCity, ci
 
   const fetchSatelliteImagery = async (cityId) => {
     try {
-      const response = await axios.get(`${API}/nasa/imagery/${cityId}`);
+      // Use the backend location ID instead of frontend city ID
+      const backendLocationId = locationMapping[cityId];
+      if (!backendLocationId) {
+        console.warn(`No backend location ID found for frontend city ID: ${cityId}`);
+        return;
+      }
+      
+      const response = await axios.get(`${API}/nasa/imagery/${backendLocationId}`);
       setSatelliteImagery(prev => ({
         ...prev,
         [cityId]: response.data
