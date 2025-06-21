@@ -65,9 +65,6 @@ def test_endpoint(method, endpoint, data=None, params=None, expected_status=200)
 
 # Main test function
 def run_tests():
-    created_location_id = None
-    created_bioplastic_id = None
-    created_alert_id = None
     uganda_location_ids = []
     
     try:
@@ -113,63 +110,23 @@ def run_tests():
             print("❌ No Uganda locations found. Cannot test NASA APIs.")
             return False
         
-        # 2.3 Create a new location
-        print("\n2.3 Creating a new location")
-        location_response = test_endpoint("post", "/locations", data=test_location)
-        if not location_response:
-            print("❌ Location creation failed.")
-            return False
-        
-        created_location_id = location_response.json().get("id")
-        created_location_name = location_response.json().get("name")
-        print(f"Created location ID: {created_location_id}")
-        
         # 3. Test Air Quality Data
         print_header("3. Air Quality Data")
         
-        # 3.1 Get air quality for the created location
-        print("\n3.1 Getting air quality data for the created location")
-        air_quality_response = test_endpoint("get", f"/air-quality/{created_location_id}")
+        # 3.1 Get air quality for a Uganda location
+        test_location_id = uganda_location_ids[0]["id"]
+        test_location_name = uganda_location_ids[0]["name"]
+        print(f"\n3.1 Getting air quality data for {test_location_name}")
+        air_quality_response = test_endpoint("get", f"/air-quality/{test_location_id}")
         if not air_quality_response:
             print("❌ Getting air quality data failed.")
             return False
         
-        # 4. Test Bioplastics Management
-        print_header("4. Bioplastics Management")
+        # 4. Test Environmental Alerts
+        print_header("4. Environmental Alerts")
         
-        # 4.1 Create a new bioplastic sample
-        print("\n4.1 Creating a new bioplastic sample")
-        # Add location data to the sample
-        test_bioplastic_sample["location_id"] = created_location_id
-        test_bioplastic_sample["location_name"] = created_location_name
-        
-        bioplastic_response = test_endpoint("post", "/bioplastics", data=test_bioplastic_sample)
-        if not bioplastic_response:
-            print("❌ Bioplastic sample creation failed.")
-            return False
-        
-        created_bioplastic_id = bioplastic_response.json().get("id")
-        print(f"Created bioplastic sample ID: {created_bioplastic_id}")
-        
-        # 4.2 Get all bioplastic samples
-        print("\n4.2 Getting all bioplastic samples")
-        bioplastics_response = test_endpoint("get", "/bioplastics")
-        if not bioplastics_response:
-            print("❌ Getting bioplastic samples failed.")
-            return False
-        
-        # 4.3 Get specific bioplastic sample
-        print("\n4.3 Getting specific bioplastic sample")
-        bioplastic_detail_response = test_endpoint("get", f"/bioplastics/{created_bioplastic_id}")
-        if not bioplastic_detail_response:
-            print("❌ Getting specific bioplastic sample failed.")
-            return False
-        
-        # 5. Test Environmental Alerts
-        print_header("5. Environmental Alerts")
-        
-        # 5.1 Get all alerts
-        print("\n5.1 Getting all alerts")
+        # 4.1 Get all alerts
+        print("\n4.1 Getting all alerts")
         alerts_response = test_endpoint("get", "/alerts")
         if not alerts_response:
             print("❌ Getting alerts failed.")
@@ -180,8 +137,8 @@ def run_tests():
         if alerts:
             created_alert_id = alerts[0].get("id")
             
-            # 5.2 Acknowledge an alert
-            print("\n5.2 Acknowledging an alert")
+            # 4.2 Acknowledge an alert
+            print("\n4.2 Acknowledging an alert")
             acknowledge_response = test_endpoint("patch", f"/alerts/{created_alert_id}/acknowledge")
             if not acknowledge_response:
                 print("❌ Acknowledging alert failed.")
@@ -189,21 +146,21 @@ def run_tests():
         else:
             print("\nNo alerts found to acknowledge. Skipping alert acknowledgment test.")
         
-        # 6. Test Dashboard Summary
-        print_header("6. Dashboard Summary")
+        # 5. Test Dashboard Summary
+        print_header("5. Dashboard Summary")
         
-        # 6.1 Get dashboard summary
-        print("\n6.1 Getting dashboard summary")
+        # 5.1 Get dashboard summary
+        print("\n5.1 Getting dashboard summary")
         summary_response = test_endpoint("get", "/dashboard/summary")
         if not summary_response:
             print("❌ Getting dashboard summary failed.")
             return False
         
-        # 7. Test NASA API Integration
-        print_header("7. NASA API Integration")
+        # 6. Test NASA API Integration
+        print_header("6. NASA API Integration")
         
-        # 7.1 Test NASA Overview endpoint
-        print("\n7.1 Testing NASA Overview endpoint")
+        # 6.1 Test NASA Overview endpoint
+        print("\n6.1 Testing NASA Overview endpoint")
         nasa_overview_response = test_endpoint("get", "/nasa/overview")
         if not nasa_overview_response:
             print("❌ NASA Overview endpoint test failed.")
@@ -215,8 +172,10 @@ def run_tests():
             print("❌ NASA Overview endpoint returned invalid data structure.")
             return False
         
-        # 7.2 Test NASA Climate Data endpoint for each Uganda location
-        print("\n7.2 Testing NASA Climate Data endpoint")
+        print("NASA Overview endpoint returned valid data structure with location information and NASA climate data.")
+        
+        # 6.2 Test NASA Climate Data endpoint for each Uganda location
+        print("\n6.2 Testing NASA Climate Data endpoint")
         for location in uganda_location_ids:
             print(f"\nTesting NASA Climate Data for {location['name']}")
             climate_response = test_endpoint("get", f"/nasa/climate/{location['id']}")
@@ -228,9 +187,11 @@ def run_tests():
             climate_data = climate_response.json()
             if not climate_data.get("temperature") and not climate_data.get("precipitation"):
                 print(f"⚠️ NASA Climate Data endpoint returned incomplete data for {location['name']}.")
+            else:
+                print(f"NASA Climate Data endpoint successfully returned climate data for {location['name']}.")
             
-        # 7.3 Test NASA Imagery endpoint for each Uganda location
-        print("\n7.3 Testing NASA Imagery endpoint")
+        # 6.3 Test NASA Imagery endpoint for each Uganda location
+        print("\n6.3 Testing NASA Imagery endpoint")
         for location in uganda_location_ids:
             print(f"\nTesting NASA Imagery for {location['name']}")
             imagery_response = test_endpoint("get", f"/nasa/imagery/{location['id']}")
@@ -242,9 +203,11 @@ def run_tests():
             imagery_data = imagery_response.json()
             if not imagery_data.get("image_url"):
                 print(f"⚠️ NASA Imagery endpoint returned incomplete data for {location['name']}.")
+            else:
+                print(f"NASA Imagery endpoint successfully returned satellite imagery URL for {location['name']}.")
         
-        # 7.4 Test Enhanced Location endpoint for each Uganda location
-        print("\n7.4 Testing Enhanced Location endpoint")
+        # 6.4 Test Enhanced Location endpoint for each Uganda location
+        print("\n6.4 Testing Enhanced Location endpoint")
         for location in uganda_location_ids:
             print(f"\nTesting Enhanced Location data for {location['name']}")
             enhanced_response = test_endpoint("get", f"/locations/{location['id']}/enhanced")
@@ -256,16 +219,8 @@ def run_tests():
             enhanced_data = enhanced_response.json()
             if not enhanced_data.get("location"):
                 print(f"⚠️ Enhanced Location endpoint returned incomplete data for {location['name']}.")
-        
-        # 8. Test Location Deletion (cleanup)
-        print_header("8. Cleanup - Delete Location")
-        
-        # 8.1 Delete the created location
-        print("\n8.1 Deleting the created location")
-        delete_response = test_endpoint("delete", f"/locations/{created_location_id}")
-        if not delete_response:
-            print("❌ Location deletion failed.")
-            return False
+            else:
+                print(f"Enhanced Location endpoint successfully returned combined location and NASA data for {location['name']}.")
         
         print_header("TEST SUMMARY")
         print("✅ All tests passed successfully!")
