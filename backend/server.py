@@ -769,6 +769,134 @@ async def get_dashboard_summary():
         "recent_analyses": [WasteManagementAnalysis(**a) for a in recent_analyses]
     }
 
+# NASA API Endpoints
+@api_router.get("/nasa/climate/{location_id}")
+async def get_nasa_climate_data(location_id: str):
+    """Get NASA climate data for a specific location"""
+    location = await db.locations.find_one({"id": location_id})
+    if not location:
+        raise HTTPException(status_code=404, detail="Location not found")
+    
+    climate_data = await fetch_nasa_climate_data(location["latitude"], location["longitude"])
+    
+    # Store the data in database
+    if climate_data and "properties" in climate_data:
+        parameters = climate_data["properties"]["parameter"]
+        latest_date = list(parameters.get("T2M", {}).keys())[-1] if parameters.get("T2M") else datetime.utcnow().strftime("%Y%m%d")
+        
+        nasa_climate = NASAClimateData(
+            location_id=location_id,
+            location_name=location["name"],
+            latitude=location["latitude"],
+            longitude=location["longitude"],
+            date=latest_date,
+            temperature=list(parameters.get("T2M", {}).values())[-1] if parameters.get("T2M") else None,
+            precipitation=list(parameters.get("PRECTOTCORR", {}).values())[-1] if parameters.get("PRECTOTCORR") else None,
+            humidity=list(parameters.get("RH2M", {}).values())[-1] if parameters.get("RH2M") else None,
+            wind_speed=list(parameters.get("WS2M", {}).values())[-1] if parameters.get("WS2M") else None,
+            solar_radiation=list(parameters.get("ALLSKY_SFC_SW_DWN", {}).values())[-1] if parameters.get("ALLSKY_SFC_SW_DWN") else None,
+            pressure=list(parameters.get("PS", {}).values())[-1] if parameters.get("PS") else None
+        )
+        
+        await db.nasa_climate.insert_one(nasa_climate.dict())
+        
+        # Check for climate anomalies and create alerts
+        anomalies = detect_climate_anomalies(climate_data, location["name"])
+        for anomaly in anomalies:
+            alert = EnvironmentalAlert(
+                location_id=location_id,
+                location_name=location["name"],
+                alert_type="climate_anomaly",
+                severity=anomaly["severity"],
+                message=anomaly["message"],
+                value=anomaly["value"],
+                threshold=anomaly["threshold"]
+            )
+            await db.alerts.insert_one(alert.dict())
+        
+        return nasa_climate
+    
+    raise HTTPException(status_code=500, detail="Unable to fetch NASA climate data")
+
+@api_router.get("/nasa/imagery/{location_id}")
+async def get_nasa_imagery(location_id: str, date: str = None):
+    """Get NASA satellite imagery for a specific location"""
+    location = await db.locations.find_one({"id": location_id})
+    if not location:
+        raise HTTPException(status_code=404, detail="Location not found")
+    
+    imagery_data = await fetch_nasa_imagery(location["latitude"], location["longitude"], date)
+    
+    if imagery_data["status"] == "success":
+        nasa_imagery = NASAImageryData(
+            location_id=location_id,
+            location_name=location["name"],
+            latitude=location["latitude"],
+            longitude=location["longitude"],
+            image_url=str(imagery_data["url"]),
+            date=imagery_data["date"],
+            satellite=imagery_data.get("satellite", "Landsat")
+        )
+        
+        await db.nasa_imagery.insert_one(nasa_imagery.dict())
+        return nasa_imagery
+    else:
+        raise HTTPException(status_code=404, detail=imagery_data.get("message", "Imagery not available"))
+
+@api_router.get("/nasa/overview")
+async def get_nasa_overview():
+    """Get NASA data overview for all Uganda locations"""
+    locations = await db.locations.find().to_list(20)
+    overview_data = []
+    
+    for location in locations:
+        # Get latest climate data
+        climate_data = await fetch_nasa_climate_data(location["latitude"], location["longitude"])
+        
+        if climate_data and "properties" in climate_data:
+            parameters = climate_data["properties"]["parameter"]
+            overview_data.append({
+                "location_id": location["id"],
+                "location_name": location["name"],
+                "latitude": location["latitude"],
+                "longitude": location["longitude"],
+                "current_temp": list(parameters.get("T2M", {}).values())[-1] if parameters.get("T2M") else None,
+                "current_precipitation": list(parameters.get("PRECTOTCORR", {}).values())[-1] if parameters.get("PRECTOTCORR") else None,
+                "current_humidity": list(parameters.get("RH2M", {}).values())[-1] if parameters.get("RH2M") else None,
+                "climate_status": "normal"  # This could be enhanced with more logic
+            })
+    
+    return {
+        "total_locations": len(overview_data),
+        "locations": overview_data,
+        "last_updated": datetime.utcnow().isoformat()
+    }
+
+@api_router.get("/locations/{location_id}/enhanced")
+async def get_enhanced_location_data(location_id: str):
+    """Get enhanced location data including NASA climate information"""
+    location = await db.locations.find_one({"id": location_id})
+    if not location:
+        raise HTTPException(status_code=404, detail="Location not found")
+    
+    # Get recent NASA climate data
+    recent_climate = await db.nasa_climate.find({"location_id": location_id}).sort("timestamp", -1).limit(1).to_list(1)
+    
+    # Get recent NASA imagery
+    recent_imagery = await db.nasa_imagery.find({"location_id": location_id}).sort("timestamp", -1).limit(1).to_list(1)
+    
+    # Get air quality data
+    air_quality = await fetch_airnow_data(location["latitude"], location["longitude"])
+    
+    enhanced_data = {
+        "location": Location(**location),
+        "nasa_climate": NASAClimateData(**recent_climate[0]) if recent_climate else None,
+        "nasa_imagery": NASAImageryData(**recent_imagery[0]) if recent_imagery else None,
+        "air_quality_preview": air_quality[:1] if air_quality else None
+    }
+    
+    return enhanced_data
+
 # Include the router in the main app
 app.include_router(api_router)
 
