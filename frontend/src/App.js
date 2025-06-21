@@ -1078,8 +1078,6 @@ const LocationDetails = ({ city, darkMode, onBack }) => {
           </button>
         ))}
       </div>
-        ))}
-      </div>
 
       {/* Selected Metric Display */}
       <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-xl p-6 shadow-lg`}>
