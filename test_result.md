@@ -98,7 +98,7 @@
 
 
 
-user_problem_statement: "Environmental monitoring app with bioplastics as priority, real environment data APIs, user-configurable locations, public environmental dashboard, real-time monitoring, alert system, and geographic mapping"
+user_problem_statement: "Environmental monitoring app with bioplastics as priority, real environment data APIs, user-configurable locations, public environmental dashboard, real-time monitoring, alert system, and geographic mapping. ENHANCED with NASA API integration for satellite imagery and climate data."
 
 backend:
   - task: "AirNow API Integration"
