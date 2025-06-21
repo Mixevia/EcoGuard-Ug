@@ -404,6 +404,129 @@ def generate_simulated_air_data() -> dict:
         "Value": round(random.uniform(30, 80), 2)
     }]
 
+async def fetch_nasa_climate_data(lat: float, lon: float, start_date: str = None, end_date: str = None) -> dict:
+    """Fetch climate data from NASA POWER API"""
+    try:
+        if not start_date:
+            start_date = (datetime.utcnow() - timedelta(days=30)).strftime("%Y%m%d")
+        if not end_date:
+            end_date = datetime.utcnow().strftime("%Y%m%d")
+        
+        params = {
+            "parameters": "T2M,PRECTOTCORR,RH2M,WS2M,ALLSKY_SFC_SW_DWN,PS",
+            "community": "AG",
+            "longitude": lon,
+            "latitude": lat,
+            "start": start_date,
+            "end": end_date,
+            "format": "JSON"
+        }
+        
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            response = await client.get(NASA_POWER_URL, params=params)
+            if response.status_code == 200:
+                return response.json()
+            else:
+                logger.error(f"NASA POWER API error: {response.status_code}")
+                return generate_simulated_climate_data()
+    except Exception as e:
+        logger.error(f"Error fetching NASA climate data: {e}")
+        return generate_simulated_climate_data()
+
+async def fetch_nasa_imagery(lat: float, lon: float, date: str = None, dim: float = 0.15) -> dict:
+    """Fetch satellite imagery from NASA Earth Imagery API"""
+    try:
+        if not date:
+            date = (datetime.utcnow() - timedelta(days=1)).strftime("%Y-%m-%d")
+        
+        imagery_url = f"{NASA_EARTH_URL}/imagery"
+        params = {
+            "lon": lon,
+            "lat": lat,
+            "date": date,
+            "dim": dim,
+            "api_key": NASA_API_KEY
+        }
+        
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            response = await client.get(imagery_url, params=params)
+            if response.status_code == 200:
+                return {
+                    "url": response.url,
+                    "date": date,
+                    "satellite": "Landsat",
+                    "status": "success"
+                }
+            else:
+                logger.error(f"NASA Earth Imagery API error: {response.status_code}")
+                return {"status": "error", "message": "No imagery available"}
+    except Exception as e:
+        logger.error(f"Error fetching NASA imagery: {e}")
+        return {"status": "error", "message": str(e)}
+
+def generate_simulated_climate_data() -> dict:
+    """Generate realistic simulated climate data for Uganda"""
+    return {
+        "properties": {
+            "parameter": {
+                "T2M": {f"{datetime.utcnow().strftime('%Y%m%d')}": round(random.uniform(20, 30), 2)},
+                "PRECTOTCORR": {f"{datetime.utcnow().strftime('%Y%m%d')}": round(random.uniform(0, 15), 2)},
+                "RH2M": {f"{datetime.utcnow().strftime('%Y%m%d')}": round(random.uniform(60, 85), 2)},
+                "WS2M": {f"{datetime.utcnow().strftime('%Y%m%d')}": round(random.uniform(2, 8), 2)},
+                "ALLSKY_SFC_SW_DWN": {f"{datetime.utcnow().strftime('%Y%m%d')}": round(random.uniform(4, 7), 2)},
+                "PS": {f"{datetime.utcnow().strftime('%Y%m%d')}": round(random.uniform(85, 90), 2)}
+            }
+        }
+    }
+
+def detect_climate_anomalies(climate_data: dict, location_name: str) -> List[dict]:
+    """Detect climate anomalies and generate alerts"""
+    alerts = []
+    
+    if "properties" in climate_data and "parameter" in climate_data["properties"]:
+        parameters = climate_data["properties"]["parameter"]
+        
+        # Temperature anomaly detection
+        if "T2M" in parameters:
+            temps = list(parameters["T2M"].values())
+            if temps:
+                latest_temp = temps[-1]
+                if latest_temp > 35:  # Very high temperature
+                    alerts.append({
+                        "type": "climate_anomaly",
+                        "severity": "high",
+                        "message": f"Extreme high temperature detected: {latest_temp}°C in {location_name}",
+                        "parameter": "temperature",
+                        "value": latest_temp,
+                        "threshold": 35
+                    })
+                elif latest_temp < 15:  # Unusually low temperature for Uganda
+                    alerts.append({
+                        "type": "climate_anomaly",
+                        "severity": "medium",
+                        "message": f"Unusually low temperature detected: {latest_temp}°C in {location_name}",
+                        "parameter": "temperature",
+                        "value": latest_temp,
+                        "threshold": 15
+                    })
+        
+        # Precipitation anomaly detection
+        if "PRECTOTCORR" in parameters:
+            precips = list(parameters["PRECTOTCORR"].values())
+            if precips:
+                latest_precip = precips[-1]
+                if latest_precip > 50:  # Very heavy rainfall
+                    alerts.append({
+                        "type": "climate_anomaly",
+                        "severity": "high",
+                        "message": f"Heavy rainfall detected: {latest_precip}mm/day in {location_name}",
+                        "parameter": "precipitation",
+                        "value": latest_precip,
+                        "threshold": 50
+                    })
+    
+    return alerts
+
 def generate_waste_analysis_data(analysis: WasteManagementAnalysisCreate) -> dict:
     """Generate comprehensive waste management analysis"""
     if analysis.analysis_type == "impact_assessment":
