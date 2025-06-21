@@ -6,7 +6,7 @@ import sys
 from datetime import datetime
 
 # Get the backend URL from the frontend .env file
-BACKEND_URL = "https://beccf4e4-7c3b-4361-8075-7d8d75981509.preview.emergentagent.com/api"
+BACKEND_URL = "https://a3cf53a4-32eb-48a9-8c88-dd65348ed4b0.preview.emergentagent.com/api"
 
 # Test data
 test_location = {
