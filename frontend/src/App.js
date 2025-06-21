@@ -860,16 +860,39 @@ const UgandaMapComponent = ({ darkMode, onLocationSelect, selectedCity }) => {
   );
 };
 
-// Location Details Component
+// Enhanced Location Details Component with NASA Data
 const LocationDetails = ({ city, darkMode, onBack }) => {
   const [selectedMetric, setSelectedMetric] = useState('plastic');
+  const [nasaData, setNasaData] = useState(null);
+  const [loading, setLoading] = useState(false);
   
   if (!city) return null;
+
+  // Fetch NASA enhanced data for the city
+  useEffect(() => {
+    const fetchNASAData = async () => {
+      setLoading(true);
+      try {
+        const response = await axios.get(`${API}/locations/${city.id}/enhanced`);
+        setNasaData(response.data);
+      } catch (error) {
+        console.error('Error fetching NASA data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (city.id) {
+      fetchNASAData();
+    }
+  }, [city.id]);
 
   const mockTrendData = {
     plastic: [45, 52, 38, 65, 59, 80, 35],
     airQuality: [65, 59, 80, 81, 56, 85, 40],
-    temperature: [21, 23, 25, 24, 22, 26, 24]
+    temperature: [21, 23, 25, 24, 22, 26, 24],
+    nasaTemp: [22, 24, 26, 25, 23, 27, 25],
+    precipitation: [2, 5, 12, 8, 3, 15, 6]
   };
 
   const getMetricData = () => {
@@ -904,6 +927,26 @@ const LocationDetails = ({ city, darkMode, onBack }) => {
           data: mockTrendData.temperature,
           color: 'stroke-yellow-500'
         };
+      case 'nasaTemp':
+        return {
+          title: 'NASA Satellite Temperature',
+          value: nasaData?.nasa_climate?.temperature?.toFixed(1) || 'N/A',
+          unit: '°C',
+          change: '+0.8°C',
+          changeColor: 'text-orange-500',
+          data: mockTrendData.nasaTemp,
+          color: 'stroke-purple-500'
+        };
+      case 'precipitation':
+        return {
+          title: 'NASA Precipitation Data',
+          value: nasaData?.nasa_climate?.precipitation?.toFixed(1) || 'N/A',
+          unit: 'mm/day',
+          change: '-2.3mm',
+          changeColor: 'text-blue-500',
+          data: mockTrendData.precipitation,
+          color: 'stroke-blue-600'
+        };
       default:
         return null;
     }
@@ -922,8 +965,11 @@ const LocationDetails = ({ city, darkMode, onBack }) => {
           <SvgIcon name="back" className="w-6 h-6 text-gray-600" />
         </button>
         <h2 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
-          Location Details
+          Enhanced Location Details
         </h2>
+        {loading && (
+          <div className="animate-spin w-5 h-5 border-2 border-teal-500 border-t-transparent rounded-full"></div>
+        )}
       </div>
 
       {/* Hero Section */}
@@ -942,12 +988,96 @@ const LocationDetails = ({ city, darkMode, onBack }) => {
           <div className="text-lg font-bold">{city.population.toLocaleString()}</div>
           <div className="text-xs">Population</div>
         </div>
+        {/* NASA Status Badge */}
+        {nasaData?.nasa_climate && (
+          <div className="absolute top-4 left-4 bg-blue-500/80 backdrop-blur-sm rounded-lg px-3 py-1 text-white text-center">
+            <div className="text-xs">🛰️ NASA DATA</div>
+            <div className="text-sm font-bold">{nasaData.nasa_climate.temperature?.toFixed(1)}°C</div>
+          </div>
+        )}
       </div>
 
-      {/* Metric Selection Tabs */}
+      {/* NASA Climate Data Section */}
+      {nasaData?.nasa_climate && (
+        <div className={`${darkMode ? 'bg-gradient-to-r from-blue-900 to-purple-900' : 'bg-gradient-to-r from-blue-50 to-purple-50'} rounded-xl p-6 shadow-lg border border-blue-200 dark:border-blue-800`}>
+          <div className="flex items-center space-x-2 mb-4">
+            <span className="text-2xl">🛰️</span>
+            <h3 className={`text-lg font-semibold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+              Real-time NASA Climate Data
+            </h3>
+            <span className={`px-2 py-1 text-xs rounded-full bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400`}>
+              Live
+            </span>
+          </div>
+          
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            <div className="text-center p-3 bg-white/10 rounded-lg backdrop-blur-sm">
+              <div className={`text-xl font-bold ${darkMode ? 'text-red-400' : 'text-red-600'}`}>
+                {nasaData.nasa_climate.temperature?.toFixed(1)}°C
+              </div>
+              <div className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Temperature</div>
+            </div>
+            <div className="text-center p-3 bg-white/10 rounded-lg backdrop-blur-sm">
+              <div className={`text-xl font-bold ${darkMode ? 'text-blue-400' : 'text-blue-600'}`}>
+                {nasaData.nasa_climate.precipitation?.toFixed(1)}mm
+              </div>
+              <div className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Precipitation</div>
+            </div>
+            <div className="text-center p-3 bg-white/10 rounded-lg backdrop-blur-sm">
+              <div className={`text-xl font-bold ${darkMode ? 'text-green-400' : 'text-green-600'}`}>
+                {nasaData.nasa_climate.humidity?.toFixed(0)}%
+              </div>
+              <div className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Humidity</div>
+            </div>
+            <div className="text-center p-3 bg-white/10 rounded-lg backdrop-blur-sm">
+              <div className={`text-xl font-bold ${darkMode ? 'text-yellow-400' : 'text-yellow-600'}`}>
+                {nasaData.nasa_climate.wind_speed?.toFixed(1)}m/s
+              </div>
+              <div className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Wind Speed</div>
+            </div>
+            <div className="text-center p-3 bg-white/10 rounded-lg backdrop-blur-sm">
+              <div className={`text-xl font-bold ${darkMode ? 'text-purple-400' : 'text-purple-600'}`}>
+                {nasaData.nasa_climate.solar_radiation?.toFixed(1)}
+              </div>
+              <div className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Solar (kWh/m²)</div>
+            </div>
+            <div className="text-center p-3 bg-white/10 rounded-lg backdrop-blur-sm">
+              <div className={`text-xl font-bold ${darkMode ? 'text-indigo-400' : 'text-indigo-600'}`}>
+                {nasaData.nasa_climate.pressure?.toFixed(1)}kPa
+              </div>
+              <div className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Pressure</div>
+            </div>
+          </div>
+          
+          <div className={`mt-4 text-xs ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+            Last updated: {new Date(nasaData.nasa_climate.timestamp).toLocaleString()}
+          </div>
+        </div>
+      )}
+
+      {/* Enhanced Metric Selection Tabs */}
       <div className="flex space-x-2 bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
         {[
-          { key: 'plastic', label: 'Plastic Waste', icon: 'trash' },
+          { key: 'plastic', label: 'Plastic Waste', icon: 'recycling' },
+          { key: 'airQuality', label: 'Air Quality', icon: 'wind' },
+          { key: 'temperature', label: 'Local Temp', icon: 'temperature' },
+          { key: 'nasaTemp', label: 'NASA Temp', icon: 'temperature' },
+          { key: 'precipitation', label: 'NASA Rain', icon: 'wind' }
+        ].map((tab) => (
+          <button
+            key={tab.key}
+            onClick={() => setSelectedMetric(tab.key)}
+            className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center space-x-1 ${
+              selectedMetric === tab.key
+                ? 'bg-white text-teal-600 shadow-sm dark:bg-gray-700 dark:text-teal-400'
+                : darkMode ? 'text-gray-400 hover:text-gray-200' : 'text-gray-600 hover:text-gray-800'
+            }`}
+          >
+            <SvgIcon name={tab.icon} className="w-4 h-4" />
+            <span className="hidden sm:inline">{tab.label}</span>
+          </button>
+        ))}
+      </div>
           { key: 'airQuality', label: 'Air Quality', icon: 'wind' },
           { key: 'temperature', label: 'Temperature', icon: 'temperature' }
         ].map((tab) => (
