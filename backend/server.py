@@ -316,13 +316,40 @@ class EnvironmentalAlert(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     location_id: str
     location_name: str
-    alert_type: str  # "air_quality", "plastic_waste_critical"
+    alert_type: str  # "air_quality", "plastic_waste_critical", "climate_anomaly"
     severity: str  # "low", "medium", "high", "critical"
     message: str
     value: float
     threshold: float
     timestamp: datetime = Field(default_factory=datetime.utcnow)
     acknowledged: bool = False
+
+class NASAClimateData(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    location_id: str
+    location_name: str
+    latitude: float
+    longitude: float
+    date: str
+    temperature: Optional[float] = None  # T2M - Temperature at 2 meters (°C)
+    precipitation: Optional[float] = None  # PRECTOTCORR - Precipitation (mm/day)
+    humidity: Optional[float] = None  # RH2M - Relative Humidity at 2m (%)
+    wind_speed: Optional[float] = None  # WS2M - Wind Speed at 2m (m/s)
+    solar_radiation: Optional[float] = None  # ALLSKY_SFC_SW_DWN - Solar radiation (kWh/m²/day)
+    pressure: Optional[float] = None  # PS - Surface Pressure (kPa)
+    timestamp: datetime = Field(default_factory=datetime.utcnow)
+
+class NASAImageryData(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    location_id: str
+    location_name: str
+    latitude: float
+    longitude: float
+    image_url: str
+    date: str
+    satellite: Optional[str] = None
+    cloud_score: Optional[float] = None
+    timestamp: datetime = Field(default_factory=datetime.utcnow)
 
 # Helper Functions
 def get_aqi_category(aqi: int) -> tuple:
