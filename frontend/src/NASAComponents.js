@@ -55,9 +55,20 @@ export const NASAClimateDashboard = ({ darkMode }) => {
   const fetchLocationClimate = async (locationId) => {
     try {
       console.log('Fetching climate for location:', locationId);
-      const response = await axios.get(`${API}/nasa/climate/${locationId}`);
-      console.log('Location climate response:', response.data);
-      setSelectedLocation(response.data);
+      const response = await fetch(`${API}/nasa/climate/${locationId}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      console.log('Location climate response:', data);
+      setSelectedLocation(data);
     } catch (err) {
       console.error('Error fetching location climate:', err);
     }
