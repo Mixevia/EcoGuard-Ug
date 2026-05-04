@@ -3,17 +3,18 @@ import requests
 import json
 import time
 import sys
+import os
 from datetime import datetime
 
 # Get the backend URL from the frontend .env file
-BACKEND_URL = "https://beccf4e4-7c3b-4361-8075-7d8d75981509.preview.emergentagent.com/api"
+BACKEND_URL = os.environ.get("BACKEND_URL", "http://localhost:8000/api")
 
 # Test data
 test_location = {
-    "name": "Portland Environmental Center",
-    "latitude": 45.5152,
-    "longitude": -122.6784,
-    "zip_code": "97201"
+    "name": "Kampala Environmental Station",
+    "latitude": 0.3476,
+    "longitude": 32.5825,
+    "zip_code": "00256"
 }
 
 test_bioplastic_sample = {
